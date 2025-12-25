@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chinese Flashcards SRS</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,8 +16,11 @@
         </header>
 
         <div id="main-menu" class="fade-in">
-            <p class="subtitle">Spaced Repetition System</p>
-            
+            <div class="group-section">
+                <label>📚 Select Groups to Study:</label>
+                <div id="group-filters" class="group-grid"></div>
+            </div>
+
             <div class="daily-goal-section">
                 <label>📝 Daily Word Goal:</label>
                 <div class="goal-selector">
@@ -35,15 +39,22 @@
             </button>
             
             <div class="secondary-menu">
-                <button class="btn secondary" onclick="showWordList()">📖 Word Bank</button>
+                <button class="btn secondary" onclick="showWordBank()">📖 Word Bank</button>
                 <button class="btn secondary" onclick="showAddWordMenu()">➕ Add Word</button>
+                <button class="btn secondary" onclick="triggerFileUpload()" style="background:#e8f8f5; color:#16a085;">📊 Import Excel</button>
                 <button class="btn secondary outline" onclick="showSyncMenu()">☁️ Sync</button>
             </div>
+            
+            <input type="file" id="file-upload" accept=".xlsx, .xls" style="display:none" onchange="handleExcelUpload(event)">
         </div>
 
         <div id="add-word-menu" class="hidden fade-in">
             <h2>Add New Word</h2>
             <div class="input-group">
+                <label>Group Name</label>
+                <input type="text" id="input-group" list="group-suggestions" placeholder="e.g. Lesson 10">
+                <datalist id="group-suggestions"></datalist>
+
                 <label>Hanzi (Chinese)</label>
                 <input type="text" id="input-hanzi" placeholder="e.g. 水">
                 <label>Pinyin</label>
@@ -59,23 +70,34 @@
 
         <div id="word-list-section" class="hidden fade-in">
             <div class="header-row">
-                <h2>My Word Bank</h2>
+                <h2 id="wb-title">Word Bank</h2>
                 <button class="btn sm-ghost" onclick="returnToMenu()">✕ Close</button>
             </div>
-            <input type="text" id="search-bar" placeholder="🔍 Search English meaning..." onkeyup="filterTable()">
-            <div class="table-container">
-                <table class="word-table">
-                    <thead>
-                        <tr>
-                            <th>Hanzi</th>
-                            <th>English</th>
-                            <th>Next Review</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="word-table-body">
-                        </tbody>
-                </table>
+            
+            <div id="wb-group-view">
+                <p class="desc">Select a folder to view words:</p>
+                <div id="wb-group-grid" class="folder-grid"></div>
+            </div>
+
+            <div id="wb-detail-view" class="hidden">
+                <div class="sub-controls">
+                    <button class="btn sm-ghost" onclick="backToFolders()">← Back to Folders</button>
+                    <input type="text" id="search-bar" placeholder="🔍 Search in this group..." onkeyup="filterTable()">
+                </div>
+                
+                <div class="table-container">
+                    <table class="word-table">
+                        <thead>
+                            <tr>
+                                <th>Hanzi</th>
+                                <th>Pinyin</th>
+                                <th>English</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="word-table-body"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -108,6 +130,7 @@
                             <button class="audio-btn" onclick="playAudio(event)">🔊</button>
                             <h3 id="display-pinyin">Pinyin</h3>
                             <p id="display-english">English Meaning</p>
+                            <span id="display-group" class="group-badge">Group Name</span>
                         </div>
                     </div>
                 </div>
