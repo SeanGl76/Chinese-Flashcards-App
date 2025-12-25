@@ -22,7 +22,7 @@ const defaultWords = [
     { hanzi: '夏令营', pinyin: 'xià lìng yíng', english: 'Summer camp' },
     { hanzi: '航海证书', pinyin: 'háng hǎi zhèng shū', english: 'Sailing certificate' },
 
-    // --- HSK 1 VOCABULARY ---
+    // --- HSK 1 VOCABULARY (Condensed for brevity, same list as before) ---
     { hanzi: '爱', pinyin: 'ài', english: 'love' },
     { hanzi: '八', pinyin: 'bā', english: 'eight' },
     { hanzi: '爸爸', pinyin: 'bàba', english: 'dad' },
@@ -174,7 +174,6 @@ const defaultWords = [
     { hanzi: '做', pinyin: 'zuò', english: 'do' }
 ];
 
-// --- 2. GRAMMAR PARTS ---
 const subjects = [
     { ch: '船长', py: 'Chuán zhǎng', en: 'The captain', isSingular: true },
     { ch: '教练', py: 'Jiào liàn', en: 'The coach', isSingular: true },
@@ -198,8 +197,10 @@ const verbs = [
 
 // --- 3. STATE ---
 let allWords = [];
-let activeList = [];
+let activeList = []; // The actual cards being shown
 let currentIndex = 0;
+let dailyLimit = 10; // Default goal
+let currentMode = 'words'; // 'words' (SRS) or 'sentences'
 
 // --- 4. DOM ELEMENTS ---
 const menuSection = document.getElementById('main-menu');
@@ -215,6 +216,12 @@ const displayPinyin = document.getElementById('display-pinyin');
 const displayEnglish = document.getElementById('display-english');
 const tableBody = document.getElementById('word-table-body');
 const searchInput = document.getElementById('search-bar');
+const progressText = document.getElementById('progress-text');
+const progressFill = document.getElementById('progress-fill');
+
+const srsControls = document.getElementById('srs-controls');
+const srsExit = document.getElementById('srs-exit');
+const sentenceControls = document.getElementById('sentence-controls');
 
 // --- 5. INITIALIZATION ---
 function loadAllWords() {
@@ -226,11 +233,20 @@ function loadAllWords() {
     const deletedDefaultsJSON = localStorage.getItem('deletedDefaultWords');
     let deletedDefaults = deletedDefaultsJSON ? JSON.parse(deletedDefaultsJSON) : [];
 
-    // 3. Filter Default Words (Remove ones in blacklist)
+    // 3. Filter Default Words
     let visibleDefaults = defaultWords.filter(word => !deletedDefaults.includes(word.hanzi));
 
     // 4. Combine
     allWords = [...visibleDefaults, ...customWords];
+
+    // 5. Get Review Dates (Merge existing progress)
+    const reviewDataJSON = localStorage.getItem('srsReviewData');
+    const reviewData = reviewDataJSON ? JSON.parse(reviewDataJSON) : {};
+
+    // Attach "nextReview" property to every word object
+    allWords.forEach(word => {
+        word.nextReview = reviewData[word.hanzi] || 0; // 0 means ready now
+    });
 }
 loadAllWords();
 
@@ -243,10 +259,13 @@ function hideAllSections() {
 function returnToMenu() {
     hideAllSections();
     menuSection.classList.remove('hidden');
+    // Reset SRS controls visibility
+    srsControls.classList.add('hidden');
+    srsExit.classList.add('hidden');
+    sentenceControls.classList.add('hidden');
 }
 
-// --- 7. WORD MANAGEMENT (ADD/DELETE) ---
-
+// --- 7. WORD MANAGEMENT ---
 function showAddWordMenu() {
     hideAllSections();
     addWordSection.classList.remove('hidden');
@@ -257,21 +276,15 @@ function saveNewWord() {
     const pinyin = document.getElementById('input-pinyin').value.trim();
     const english = document.getElementById('input-english').value.trim();
 
-    if (!hanzi || !pinyin || !english) {
-        alert("Please fill in all fields!");
-        return;
-    }
+    if (!hanzi || !pinyin || !english) return alert("Please fill in all fields!");
 
     const newWord = { hanzi, pinyin, english, isCustom: true };
-    
-    // Save to LocalStorage
     let customWords = JSON.parse(localStorage.getItem('myCustomChineseWords')) || [];
     customWords.push(newWord);
     localStorage.setItem('myCustomChineseWords', JSON.stringify(customWords));
 
     loadAllWords();
     
-    // Reset Inputs
     document.getElementById('input-hanzi').value = '';
     document.getElementById('input-pinyin').value = '';
     document.getElementById('input-english').value = '';
@@ -280,123 +293,175 @@ function saveNewWord() {
     returnToMenu();
 }
 
-function deleteWord(hanziToDelete) {
-    if (!confirm(`Are you sure you want to remove "${hanziToDelete}"?`)) return;
+// --- 8. GAME LOGIC ---
 
-    // Check if it is a Custom Word
-    let customWords = JSON.parse(localStorage.getItem('myCustomChineseWords')) || [];
-    const customIndex = customWords.findIndex(w => w.hanzi === hanziToDelete);
+// Set the daily goal
+function setLimit(num) {
+    dailyLimit = num;
+    // UI update
+    document.querySelectorAll('.goal-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+}
 
-    if (customIndex > -1) {
-        // It's a custom word -> Remove it permanently
-        customWords.splice(customIndex, 1);
-        localStorage.setItem('myCustomChineseWords', JSON.stringify(customWords));
-    } else {
-        // It's a default word -> Add to blacklist
-        let deletedDefaults = JSON.parse(localStorage.getItem('deletedDefaultWords')) || [];
-        deletedDefaults.push(hanziToDelete);
-        localStorage.setItem('deletedDefaultWords', JSON.stringify(deletedDefaults));
-    }
-
-    // Refresh everything
+// Start Daily Session (SRS MODE)
+function startDailySession() {
+    currentMode = 'words'; // SRS mode
     loadAllWords();
-    renderTable(); 
-}
-
-// --- 8. TABLE ---
-function showWordList() {
-    loadAllWords();
-    renderTable();
-    hideAllSections();
-    wordListSection.classList.remove('hidden');
-}
-
-function renderTable() {
-    tableBody.innerHTML = '';
-    const filter = searchInput.value.toLowerCase();
-
-    allWords.forEach(word => {
-        if (word.english.toLowerCase().includes(filter) || word.hanzi.includes(filter)) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td><strong>${word.hanzi}</strong></td>
-                <td>${word.pinyin}</td>
-                <td>${word.english}</td>
-                <td style="text-align: center;">
-                    <button class="delete-btn" onclick="deleteWord('${word.hanzi}')">Trash 🗑️</button>
-                </td>
-            `;
-            tableBody.appendChild(row);
-        }
-    });
-}
-
-function filterTable() { renderTable(); }
-
-// --- 9. SYNC ---
-function showSyncMenu() {
-    hideAllSections();
-    syncSection.classList.remove('hidden');
-    syncBox.value = '';
-}
-
-function exportData() {
-    const data = {
-        custom: JSON.parse(localStorage.getItem('myCustomChineseWords')) || [],
-        deleted: JSON.parse(localStorage.getItem('deletedDefaultWords')) || []
-    };
     
-    if (data.custom.length === 0 && data.deleted.length === 0) {
-        syncBox.value = "Nothing to backup yet.";
-        return;
+    const now = Date.now();
+    
+    // 1. Find Due Words
+    let dueWords = allWords.filter(w => w.nextReview <= now);
+    
+    // 2. Shuffle Due Words
+    dueWords.sort(() => Math.random() - 0.5);
+    
+    // 3. Select based on limit
+    if (dueWords.length < dailyLimit) {
+        // Fill with new words (words with 0 review time are effectively new/due)
+        // But we already filtered by <= now.
+        // If we want random non-due words, we shouldn't. SRS implies only due words.
+        // However, to ensure the user gets practice if they have nothing due:
+        let remainingSlots = dailyLimit - dueWords.length;
+        if(remainingSlots > 0 && dueWords.length < allWords.length) {
+             // Find words not in dueWords
+             let notDue = allWords.filter(w => w.nextReview > now);
+             // Sort by date (soonest first) or random? Let's do random to keep it fun
+             notDue.sort(() => Math.random() - 0.5);
+             let fillers = notDue.slice(0, remainingSlots);
+             activeList = [...dueWords, ...fillers];
+        } else {
+             activeList = dueWords.slice(0, dailyLimit);
+        }
+    } else {
+        activeList = dueWords.slice(0, dailyLimit);
     }
     
-    syncBox.value = JSON.stringify(data);
-    syncBox.select();
-    document.execCommand("copy");
-    alert("Data copied to clipboard!");
-}
+    if (activeList.length === 0) return alert("No words loaded!");
 
-function importData() {
-    const raw = syncBox.value;
-    if (!raw) return alert("Paste code first.");
-
-    try {
-        const data = JSON.parse(raw);
-        if (Array.isArray(data)) {
-            localStorage.setItem('myCustomChineseWords', JSON.stringify(data));
-        } else if (data.custom) {
-            localStorage.setItem('myCustomChineseWords', JSON.stringify(data.custom));
-            localStorage.setItem('deletedDefaultWords', JSON.stringify(data.deleted));
-        }
-        
-        loadAllWords();
-        alert("Data restored!");
-        returnToMenu();
-    } catch (e) {
-        alert("Invalid code format.");
-    }
-}
-
-// --- 10. GAME LOGIC ---
-function startPractice(type) {
-    loadAllWords();
-    if (allWords.length === 0) {
-        alert("No words available! Add some or check your filters.");
-        return;
-    }
-
-    if (type === 'words') {
-        activeList = allWords.sort(() => Math.random() - 0.5);
-    } else {
-        activeList = generateRandomSentences(10);
-    }
     currentIndex = 0;
     hideAllSections();
     gameSection.classList.remove('hidden');
+    
+    // Show SRS UI
+    srsExit.classList.remove('hidden');
+    sentenceControls.classList.add('hidden'); // Hide sentence buttons
+    
     loadCard();
 }
 
+// Start Sentence Mode
+function startPractice(type) {
+    currentMode = 'sentences';
+    loadAllWords();
+    activeList = generateRandomSentences(10);
+    currentIndex = 0;
+    
+    hideAllSections();
+    gameSection.classList.remove('hidden');
+    
+    // Show Sentence UI
+    sentenceControls.classList.remove('hidden');
+    srsControls.classList.add('hidden');
+    srsExit.classList.add('hidden');
+    
+    loadCard();
+}
+
+// SRS Logic
+function handleSRS(rating) {
+    const currentWord = activeList[currentIndex];
+    const now = Date.now();
+    let nextDate = now;
+
+    if (rating === 'again') {
+        // Keep in active list! Push to back of queue.
+        activeList.push(currentWord);
+        // Do NOT update database date yet
+    } else {
+        // Calculate new date
+        if (rating === 'hard') {
+            nextDate = now + (24 * 60 * 60 * 1000); // 1 Day
+        } else if (rating === 'good') {
+            nextDate = now + (7 * 24 * 60 * 60 * 1000); // 7 Days
+        } else if (rating === 'easy') {
+            nextDate = now + (30 * 24 * 60 * 60 * 1000); // 30 Days
+        }
+
+        // Save to DB
+        let reviewData = JSON.parse(localStorage.getItem('srsReviewData')) || {};
+        reviewData[currentWord.hanzi] = nextDate;
+        localStorage.setItem('srsReviewData', JSON.stringify(reviewData));
+    }
+
+    nextCard();
+}
+
+function loadCard() {
+    const item = activeList[currentIndex];
+    displayHanzi.textContent = item.hanzi;
+    displayPinyin.textContent = item.pinyin;
+    displayEnglish.textContent = item.english;
+
+    // Adjust font size
+    displayHanzi.style.fontSize = item.hanzi.length > 6 ? '2rem' : '3.5rem';
+    
+    // Reset Card State
+    cardElement.classList.remove('flipped');
+    
+    // If SRS mode, hide buttons until flipped
+    if (currentMode === 'words') {
+        srsControls.classList.add('hidden');
+    }
+    
+    updateProgress();
+}
+
+function flipCard() { 
+    cardElement.classList.toggle('flipped');
+    
+    // Show SRS buttons only when flipped in SRS mode
+    if (currentMode === 'words' && cardElement.classList.contains('flipped')) {
+        setTimeout(() => {
+            srsControls.classList.remove('hidden');
+        }, 200); // Small delay for animation
+    }
+}
+
+function nextCard() {
+    // If we are in SRS mode and "Again" was pressed, the list grows.
+    // If normal pass, index increments.
+    currentIndex++;
+    
+    if (currentIndex >= activeList.length) {
+        if (currentMode === 'words') {
+            alert("Daily Session Complete! 🎉");
+            returnToMenu();
+        } else {
+            // Sentence mode loop
+            currentIndex = 0;
+            loadCard();
+        }
+    } else {
+        // Animation reset
+        if (cardElement.classList.contains('flipped')) {
+            cardElement.classList.remove('flipped');
+            setTimeout(loadCard, 300);
+        } else {
+            loadCard();
+        }
+    }
+}
+
+function updateProgress() {
+    // Calculate progress based on unique words finished vs original goal
+    // Simple version: Current Index / Total Queue
+    let pct = ((currentIndex) / activeList.length) * 100;
+    progressFill.style.width = pct + "%";
+    progressText.textContent = `${currentIndex + 1} / ${activeList.length}`;
+}
+
+// --- SENTENCE GENERATOR ---
 function getArticle(word) {
     const vowels = ['a', 'e', 'i', 'o', 'u'];
     if (!word) return '';
@@ -407,7 +472,6 @@ function getArticle(word) {
 
 function generateRandomSentences(count) {
     let sentences = [];
-    // PDF Sentence
     sentences.push({
         hanzi: '中国人在端午节吃粽子、划龙舟。',
         pinyin: 'Zhōngguó rén... huá lóng zhōu.',
@@ -432,41 +496,98 @@ function generateRandomSentences(count) {
     return sentences;
 }
 
-function loadCard() {
-    const item = activeList[currentIndex];
-    displayHanzi.textContent = item.hanzi;
-    displayPinyin.textContent = item.pinyin;
-    displayEnglish.textContent = item.english;
-
-    // Adjust font size for longer sentences
-    displayHanzi.style.fontSize = item.hanzi.length > 6 ? '2rem' : '3.5rem';
-    
-    cardElement.classList.remove('flipped');
+// --- TABLE ---
+function showWordList() {
+    loadAllWords();
+    renderTable();
+    hideAllSections();
+    wordListSection.classList.remove('hidden');
 }
 
-function flipCard() { cardElement.classList.toggle('flipped'); }
+function renderTable() {
+    tableBody.innerHTML = '';
+    const filter = searchInput.value.toLowerCase();
+    const now = Date.now();
 
-function nextCard() {
-    currentIndex = (currentIndex + 1) % activeList.length;
-    if (cardElement.classList.contains('flipped')) {
-        cardElement.classList.remove('flipped');
-        setTimeout(loadCard, 300);
+    allWords.forEach(word => {
+        if (word.english.toLowerCase().includes(filter) || word.hanzi.includes(filter)) {
+            const row = document.createElement('tr');
+            
+            // Format Next Review Date
+            let reviewText = "Ready Now";
+            if (word.nextReview > now) {
+                const diff = Math.ceil((word.nextReview - now) / (1000 * 60 * 60 * 24));
+                reviewText = `Wait ${diff}d`;
+            }
+
+            row.innerHTML = `
+                <td><strong>${word.hanzi}</strong></td>
+                <td>${word.english}</td>
+                <td style="font-size:0.8rem; color: #7f8c8d;">${reviewText}</td>
+                <td><button class="delete-btn" onclick="deleteWord('${word.hanzi}')">🗑️</button></td>
+            `;
+            tableBody.appendChild(row);
+        }
+    });
+}
+function filterTable() { renderTable(); }
+
+// --- DELETE ---
+function deleteWord(hanziToDelete) {
+    if (!confirm(`Remove "${hanziToDelete}"?`)) return;
+
+    let customWords = JSON.parse(localStorage.getItem('myCustomChineseWords')) || [];
+    const customIndex = customWords.findIndex(w => w.hanzi === hanziToDelete);
+
+    if (customIndex > -1) {
+        customWords.splice(customIndex, 1);
+        localStorage.setItem('myCustomChineseWords', JSON.stringify(customWords));
     } else {
-        loadCard();
+        let deletedDefaults = JSON.parse(localStorage.getItem('deletedDefaultWords')) || [];
+        deletedDefaults.push(hanziToDelete);
+        localStorage.setItem('deletedDefaultWords', JSON.stringify(deletedDefaults));
     }
+    loadAllWords();
+    renderTable(); 
 }
 
-// --- 11. AUDIO ---
+// --- SYNC ---
+function showSyncMenu() {
+    hideAllSections();
+    syncSection.classList.remove('hidden');
+    syncBox.value = '';
+}
+function exportData() {
+    const data = {
+        custom: JSON.parse(localStorage.getItem('myCustomChineseWords')) || [],
+        deleted: JSON.parse(localStorage.getItem('deletedDefaultWords')) || [],
+        reviews: JSON.parse(localStorage.getItem('srsReviewData')) || {}
+    };
+    syncBox.value = JSON.stringify(data);
+    syncBox.select();
+    document.execCommand("copy");
+    alert("Data copied!");
+}
+function importData() {
+    try {
+        const data = JSON.parse(syncBox.value);
+        if (data.custom) localStorage.setItem('myCustomChineseWords', JSON.stringify(data.custom));
+        if (data.deleted) localStorage.setItem('deletedDefaultWords', JSON.stringify(data.deleted));
+        if (data.reviews) localStorage.setItem('srsReviewData', JSON.stringify(data.reviews));
+        loadAllWords();
+        alert("Restored!");
+        returnToMenu();
+    } catch (e) { alert("Invalid code."); }
+}
+
+// --- AUDIO ---
 function playAudio(event) {
     event.stopPropagation();
     const text = activeList[currentIndex].hanzi;
-    
     if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'zh-CN';
         utterance.rate = 0.8;
         window.speechSynthesis.speak(utterance);
-    } else {
-        alert("Browser does not support audio.");
-    }
+    } else { alert("Audio not supported."); }
 }
