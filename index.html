@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chinese Flashcards</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <h1>Chinese Learner <span style="font-size:0.8em">🇨🇳</span></h1>
+        </header>
+
+        <div id="main-menu" class="fade-in">
+            <p class="subtitle">Choose your practice mode</p>
+            <div class="menu-grid">
+                <button class="btn mode-btn large" onclick="startPractice('words')">
+                    <span class="icon">🎴</span> Practice Words
+                </button>
+                <button class="btn mode-btn large" onclick="startPractice('sentences')">
+                    <span class="icon">🗣️</span> Practice Sentences
+                </button>
+            </div>
+            
+            <div class="secondary-menu">
+                <button class="btn secondary" onclick="showWordList()">📖 Word Bank</button>
+                <button class="btn secondary" onclick="showAddWordMenu()">➕ Add Word</button>
+                <button class="btn secondary outline" onclick="showSyncMenu()">☁️ Sync</button>
+            </div>
+        </div>
+
+        <div id="add-word-menu" class="hidden fade-in">
+            <h2>Add New Word</h2>
+            <div class="input-group">
+                <label>Hanzi (Chinese)</label>
+                <input type="text" id="input-hanzi" placeholder="e.g. 水">
+                
+                <label>Pinyin</label>
+                <input type="text" id="input-pinyin" placeholder="e.g. shuǐ">
+                
+                <label>English</label>
+                <input type="text" id="input-english" placeholder="e.g. Water">
+            </div>
+            <div class="action-buttons">
+                <button class="btn primary" onclick="saveNewWord()">Save Word</button>
+                <button class="btn ghost" onclick="returnToMenu()">Cancel</button>
+            </div>
+        </div>
+
+        <div id="word-list-section" class="hidden fade-in">
+            <div class="header-row">
+                <h2>My Word Bank</h2>
+                <button class="btn sm-ghost" onclick="returnToMenu()">✕ Close</button>
+            </div>
+            
+            <input type="text" id="search-bar" placeholder="🔍 Search English meaning..." onkeyup="filterTable()">
+            
+            <div class="table-container">
+                <table class="word-table">
+                    <thead>
+                        <tr>
+                            <th>Hanzi</th>
+                            <th>Pinyin</th>
+                            <th>English</th>
+                            <th style="text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="word-table-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="sync-menu" class="hidden fade-in">
+            <h2>Backup & Sync</h2>
+            <p class="desc">Copy this code to transfer your words to another device.</p>
+            <textarea id="sync-data-box" rows="5" placeholder="Tap 'Get Data' to generate code..."></textarea>
+            <div class="action-buttons">
+                <button class="btn primary" onclick="exportData()">⬇️ Get Data</button>
+                <button class="btn secondary" onclick="importData()">⬆️ Load Data</button>
+            </div>
+            <button class="btn ghost full-width" onclick="returnToMenu()">Back</button>
+        </div>
+
+        <div id="game-area" class="hidden fade-in">
+            <div class="card-container">
+                <div class="card" onclick="flipCard()">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <button class="audio-btn" onclick="playAudio(event)">🔊</button>
+                            <h2 id="display-hanzi">汉字</h2>
+                            <p class="hint">Tap to flip</p>
+                        </div>
+                        <div class="card-back">
+                            <button class="audio-btn" onclick="playAudio(event)">🔊</button>
+                            <h3 id="display-pinyin">Pinyin</h3>
+                            <p id="display-english">English Meaning</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn ghost" onclick="returnToMenu()">Exit</button>
+                <button class="btn primary large-action" onclick="nextCard()">Next &rarr;</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
