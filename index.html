@@ -3,9 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chinese Flashcards SRS</title>
+    <title>Chinese Flashcards AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,6 +21,11 @@
         <header>
             <h1>Chinese Learner <span style="font-size:0.8em">🇨🇳</span></h1>
         </header>
+
+        <div id="loading-overlay" class="hidden">
+            <div class="spinner"></div>
+            <p id="loading-text">AI is processing your lesson...</p>
+        </div>
 
         <div id="main-menu" class="fade-in">
             <div class="group-section">
@@ -41,11 +53,28 @@
             <div class="secondary-menu">
                 <button class="btn secondary" onclick="showWordBank()">📖 Word Bank</button>
                 <button class="btn secondary" onclick="showAddWordMenu()">➕ Add Word</button>
-                <button class="btn secondary" onclick="triggerFileUpload()" style="background:#e8f8f5; color:#16a085;">📊 Import Excel</button>
+                
+                <button class="btn secondary" onclick="triggerFileUpload()" style="background:#e8f8f5; color:#16a085;">
+                    📊 Import Excel
+                </button>
+                
+                <div class="magic-wrapper">
+                    <button class="btn secondary magic-btn" onclick="triggerMagicUpload()">
+                        ✨ Magic Import (PDF)
+                    </button>
+                    
+                    <button class="question-mark-btn" onclick="toggleMagicInfo()">?</button>
+
+                    <div id="magic-info-popup" class="hidden">
+                        <p>🚀 <strong>How it works:</strong><br>Upload a lesson PDF and our AI will automatically extract vocabulary and create practice sentences!</p>
+                    </div>
+                </div>
+                
                 <button class="btn secondary outline" onclick="showSyncMenu()">☁️ Sync</button>
             </div>
             
             <input type="file" id="file-upload" accept=".xlsx, .xls" style="display:none" onchange="handleExcelUpload(event)">
+            <input type="file" id="magic-upload" accept=".pdf" style="display:none" onchange="handleMagicUpload(event)">
         </div>
 
         <div id="add-word-menu" class="hidden fade-in">
@@ -166,6 +195,6 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=999"></script>
 </body>
 </html>
