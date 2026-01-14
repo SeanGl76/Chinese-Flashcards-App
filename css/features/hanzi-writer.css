@@ -1,0 +1,95 @@
+/* --- HANZI WRITER --- */
+#writer-container {
+    /* 1. Remove padding here so the list can touch the edges */
+    padding: 0 !important; 
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    overflow-y: hidden; /* Let child views handle scrolling */
+}
+
+#writer-group-menu {
+    width: 100%;
+    padding: 20px; /* Add breathing room here */
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+#writer-group-menu .zone-card { width: 100%; max-width: none; padding: 10px 15px; margin-bottom: 5px; display: flex; align-items: center; box-sizing: border-box; }
+.zone-card { width: 90%; max-width: 400px; padding: 10px 15px; margin-bottom: 5px; box-sizing: border-box; background: white; border: 1px solid #eee; border-radius: 16px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+#writer-word-selection {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    /* No padding here! */
+}
+
+.writer-search-container { position: relative; top: 0; background: var(--card-bg); padding: 15px 20px; z-index: 100; border-bottom: 1px solid #eee; width: 100%; box-sizing: border-box; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.writer-search-input { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 25px; font-size: 1rem; outline: none; box-sizing: border-box; background: #f8f9fa; }
+
+.writer-word-row { display: flex; align-items: center; padding: 10px 15px; border-bottom: 1px solid #eee; background: #fff; cursor: pointer; transition: background 0.2s; }
+.writer-word-info { flex: 1; display: flex; flex-direction: column; }
+.writer-word-hanzi { font-size: 1.2rem; color: var(--primary); font-weight: bold; }
+.writer-word-meta { font-size: 0.8rem; color: #666; }
+
+#writer-canvas-area {
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+}
+#writer-reference-header h1 {
+    display: none !important;
+}
+#writer-canvas { background: white; border: 2px solid var(--primary); border-radius: 8px; margin: 10px 0; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+#writer-canvas-wrapper { position: flex; margin: 10px auto; display: inline-block; background-color: #fdfaf0; border: 2px solid #e8e4d8; border-radius: 15px; padding: 8px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02); }
+.writer-controls {
+    display: flex;
+    flex-direction: row !important; /* Ensure they stack vertically */
+    align-items: center;    /* Center them */
+    gap: 6px;
+    width: 100%;
+    padding: 0 10px; /* Safety padding on sides */
+    box-sizing: border-box;
+}
+
+.writer-controls .btn {
+    width: auto !important; /* Remove the fixed 240px width */
+    flex: 1;
+    padding: 10px 4px !important; 
+    font-size: 0.85rem !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+#writer-scroll-top { position: fixed; bottom: 30px; right: calc(50% - 220px); width: 50px; height: 50px; background: var(--primary); color: white; border-radius: 50%; border: none; z-index: 9999; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+#writer-success-overlay { 
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 60px;
+    color: var(--success);
+    background: rgba(255, 255, 255, 0.9);
+    width: 100px; height: 100px;
+    border-radius: 50%; display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+    z-index: 10; pointer-events: none; 
+    animation: popIn 0.5s; 
+}
+
+.writer-header {
+    /* Remove gap between text and line */
+    padding-bottom: 5px !important; 
+    border-bottom: 1px solid #eee;
+    
+    /* Create the "little gap afterwards" */
+    margin-bottom: 20px !important; 
+}
