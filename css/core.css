@@ -1,0 +1,932 @@
+/* --- core.css: Foundation, Layout, and Shared UI --- */
+
+:root {
+    /* --- NEW THEME: LANTERN & JADE --- */
+    --primary: #d72020;       /* Lantern Red */
+    --primary-dark: #c61c1c;  
+    --secondary: #00897b;     /* Jade Green */
+    --secondary-dark: #00695c;
+    --accent: #ffb300;        /* Gold */
+    --accent-dark: #ff8f00;
+ 
+    --background:  #f9e0a6;    /* Rice Paper */
+    --transition: #f7dd9f;
+    --border: #edd190;
+    --container-bg: #ebc16f;
+    --card-bg: #f9e0a6;
+    
+    --text: #2c3e50;          /* Ink Black */
+    --light-text: #546e7a;
+
+    --button-color: #ffb300;
+    --button-color-border: #ff8f00;
+
+    
+    
+    --success: #2ecc71;
+    --warning: #f1c40f;
+    --danger: #e74c3c;
+    
+    --shadow-color: rgba(140, 111, 50, 0.15); /* Warm Shadow */
+}
+
+
+/* --- DARK MODE OVERRIDES --- */
+body.dark-mode {
+    --primary: #ff5252;       /* Brighter Red for dark bg */
+    --primary-dark: #d32f2f;
+    --secondary: #26a69a;     /* Lighter Jade */
+    --secondary-dark: #00897b;
+    --accent: #ffca28;        /* Bright Gold */
+    
+    --background: #382603;    /* Deep Charcoal */
+    --container-bg: #4b3406;   
+    --card-bg: #272424;       /* Dark Grey Cards */
+
+    --transition: #3b2905;
+    
+    --text: #e0e0e0;          /* Off-white text */
+    --light-text: #b0bec5;
+    --border: #333333;
+    
+    --shadow-color: rgb(100, 73, 15);
+}
+
+/* --- BASE LAYOUT --- */
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+body {
+    background-color:var(--background);
+    /* Subtle Pattern */
+    background-image: radial-gradient(var(--border) 1px, transparent 1px);
+    background-size: 400px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    transition: background-color 0.3s, color 0.3s;
+    overscroll-behavior-y: none;
+}
+
+/* TAP HIGHLIGHT REMOVAL */
+* { -webkit-tap-highlight-color: transparent; }
+
+.app-container {
+    width: 100%;
+    max-width: min(500px, 100vw); 
+    height: 100dvh;
+    display: flex;
+    margin: 0 auto;
+    flex-direction: column;
+    position: relative !important;
+    overflow: hidden;
+    background-color: var(--container-bg);
+    background-size: cover;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 0 30px var(--shadow-color);
+    
+    /* On Desktop only: Add borders and roundness */
+    @media (min-width: 501px) {
+        height: 95vh; /* Don't touch edges on desktop */
+        margin-top: 2.5vh;
+        border-radius: 30px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2), 0 0 0 10px var(--transition);
+        border: 1px solid var(--border);
+    }
+}
+
+
+/* --- HEADER --- */
+.fun-header {
+    background: transparent; padding: 15px;
+    padding: 15px; /* Smaller padding */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Perfectly centered */
+    justify-content: center;
+    box-sizing: border-box;
+    flex-shrink: 0; /* Prevents it from getting crushed */
+    text-align: center;      /* Centers text inside child elements */
+    width: 100%;
+}
+.mascot {
+    display: block;
+    margin: 0 auto 10px auto;
+    font-size: 3.5rem;
+    width: 100%; 
+    text-align: center;
+    line-height: 1;
+    margin-bottom: 5px;
+}
+
+.app-container.game-mode header,
+.app-container.game-mode .fun-header {
+    display: none !important;
+}
+
+.speech-bubble {
+    display: inline-block;
+    background: var(--card-bg);
+    padding: 8px 15px;
+    border-radius: 15px;
+    font-weight: bold;
+    color: var(--text);
+    position: relative;
+    box-shadow: 0 4px 10px var(--shadow-color);
+    margin: 0 auto 10px auto;
+    margin-top: -10px;
+    margin-bottom: 10px;
+}
+/* Little triangle for speech bubble */
+.speech-bubble::after {
+    content: '';
+    position: absolute; top: -10px; left: 50%;
+    margin-left: -10px;
+    border-width: 10px; border-style: solid;
+    border-color: transparent transparent var(--card-bg) transparent;
+}
+
+h1 { margin: 0; font-size: 1.4rem; color: var(--primary); }
+
+/* --- UTILITIES --- */
+.hidden {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    z-index: -100 !important;
+}
+
+/* FIX: Change 'block' to 'table-cell' so borders align perfectly */
+.desktop-only { display: table-cell; }
+
+/* Keep the width limit we set earlier */
+@media (max-width: 550px) { .desktop-only { display: none; } }
+
+/* --- BUTTONS & INPUTS --- */
+.btn {
+    border: none;
+    border-radius: 20px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 8px 12px;
+    font-size: 1rem;
+    transition: all 0.1s;
+    transform: translateY(0);
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+.btn.primary {
+    background-color: var(--primary); 
+    color: white;
+    box-shadow: 0 5px 0 var(--primary-dark);
+}
+.btn.primary:active {
+    box-shadow: 0 0 0 transparent;
+    transform: translateY(8px);
+}
+
+
+.btn.secondary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark)) !important;
+    color: #3d3d3d;
+    box-shadow: 0 4px 0 var(--shadow-color);
+}
+.btn.secondary:active {
+    box-shadow: 0 0 0 transparent;
+    transform: translateY(8px);
+}
+
+.btn.ghost, .btn.sm-ghost {
+    background-color: var(--button-color); 
+    color: var(--light-text);
+    border: 2px solid var(--button-color-border);
+    box-shadow: 0 6px 0 var(--button-color-border);
+}
+.btn.ghost:active, .btn.sm-ghost:active {
+    box-shadow: 0 0 0 #b2bec3;
+    transform: translateY(5px);
+}
+
+.ghost { background: transparent; color: var(--light-text); border: 1px solid #eee; }
+.sm-ghost {background: transparent; color: var(--light-text); border: none; font-size: 0.6rem; cursor: pointer; }
+
+
+.full-width { width: 100%; }
+.mode-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #3d3d3d; width: 100%; 
+    border: 2px solid var(--accent-dark); border-radius: 12px;  
+}
+
+.action-buttons-row { display: flex; gap: 10px; width: 100%; margin-top: 15px; }
+.action-buttons-row .btn { flex: 1; }
+.action-buttons-vertical { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; margin-bottom: 10px; }
+.settings-btn { transition: transform 0.3s ease; opacity: 0.7; color: var(--text); }
+.settings-btn:hover { transform: rotate(90deg); opacity: 1; }
+
+
+/* --- INPUTS --- */
+.input-group { display: flex; flex-direction: column; gap: 10px; }
+label { font-weight: bold; font-size: 0.9rem; color: var(--light-text); }
+input, textarea, select {
+    background: var(--container-bg); color: var(--text);
+    padding: 12px; border: 2px solid var(--border);
+    border-radius: 12px; font-size: 1rem; outline: none;
+    box-sizing: border-box; width: 100%;
+}
+input:focus, textarea:focus{ border-color: var(--primary); }
+
+
+/* --- MAIN MENU: Groups --- */
+#main-menu, #story-hub, #word-list-section, #game-area, #practice-hub, #arcade-hub,
+#add-word-menu, #chat-container, #writer-container {
+    flex: 1; height: auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
+    padding: 20px; padding-bottom: 80px; width: 100%; box-sizing: border-box;
+    -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; 
+}
+#main-menu { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: min-content; align-content: start; gap: 15px; }
+.secondary-menu { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; }
+.secondary-menu .btn { flex: 1 1 40%; }
+
+
+
+/*sub-page-header*/
+.header-row {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: var(--container-bg);
+    border-bottom: 1px solid var(--border);
+    box-sizing: border-box;
+    margin-bottom: 15px;
+    flex-shrink: 0; /* Prevents header from squishing */
+    color: var(--text);
+}
+
+.header-row h2, 
+#add-word-menu h2 {
+    margin: 0 !important; /* Removes the hidden browser gap */
+    padding: 0;
+    font-size: 1.2rem;
+    color: var(--primary);
+}
+
+/* 4. Fix specific menu containers */
+#add-word-menu {
+    padding: 0 !important; /* Remove container padding */
+}
+#add-word-menu > h2 {
+    /* Since Add Word Menu doesn't use .header-row, we simulate it */
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    background: white;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+}
+#add-word-menu .input-group {
+    padding: 20px; /* Add padding back to the content body */
+}
+
+/* --- GROUPS SECTIONS --- */
+
+.group-section { margin-bottom: 10px; }
+.group-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+}
+.group-toggle {
+    padding: 8px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.8rem;
+    cursor: pointer;
+    background: #fff;
+    transition: 0.2s;
+    user-select: none;
+}
+.group-toggle.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.magic-wrapper { width: 100%; display: flex; align-items: center; gap: 10px; }
+
+.magic-btn {
+    background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+    color: white !important;
+    border: none;
+    box-shadow: 0 8px 0 #004d40 !important; /* Dark Green Shadow */
+    border-radius: 20px; font-weight: 800;
+}
+
+.magic-btn:active { box-shadow: 0 0 0 transparent !important; transform: translateY(8px); }
+
+.magic-btn.processing { animation: pulse-glow 2s infinite; pointer-events: none; opacity: 0.8; }
+
+/* --- MODALS & OVERLAYS --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 2000 !important;
+    backdrop-filter: blur(4px);
+}
+.modal-content {
+    background: var(--container-bg); color: var(--text);
+    width: 90%; max-width: 400px; max-height: 85vh;
+    overflow-y: auto; padding: 25px;
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    position: relative; text-align: center;
+}
+.modal-content h3 { margin-top: 0; color: var(--primary); margin-bottom: 5px; }
+
+/* Modal Internals (Goals/Settings) */
+.goal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+.goal-btn-large {
+    padding: 20px; border: 2px solid #eee; background: #f9f9f9;
+    border-radius: 15px; font-size: 1.2rem; font-weight: bold; color: var(--text);
+    cursor: pointer; transition: all 0.2s;
+}
+.goal-btn-large:active { transform: scale(0.95); background: var(--primary); color: white; }
+.setup-guide { text-align: left; background: #f0f7ff; padding: 18px; border-radius: 16px; margin-bottom: 20px; font-size: 0.85rem; border: 1px solid #d1e3ff; }
+.settings-popup { background: var(--container-bg); padding: 30px; border-radius: 20px; width: 90%; max-width: 320px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+.mode-toggle-group { display: flex; background: var(--background); padding: 4px; border-radius: 12px; margin: 20px 0; }
+.mode-toggle { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 10px; color: #a4b0be; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+.mode-toggle.active { background: var(--container-bg); color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+/* Specific Z-Indices */
+#settings-modal { z-index: 1000 !important; }
+#groq-instructions-modal { z-index: 99999 !important; background: rgba(0, 0, 0, 0.85); }
+#alert-modal, #confirm-modal { z-index: 3000 !important; }
+
+/* --- TOAST & LOADING --- */
+.toast {
+    position: fixed; bottom: 25px; left: 50%;
+    transform: translateX(-50%);
+    background: #333; color: white;
+    padding: 12px 25px; border-radius: 30px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    display: flex; align-items: center; justify-content: space-between;
+    z-index: 4000; min-width: 250px;
+    animation: toastSlideUp 0.3s ease-out;
+}
+.toast button { background: none; border: none; color: #bbb; font-size: 1.2rem; cursor: pointer; padding: 0 5px; }
+.toast button:hover { color: #fff; }
+
+#loading-overlay {
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(255,255,255,0.95);
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    z-index: 3000;
+}
+.spinner {
+    width: 50px; height: 50px;
+    border: 5px solid #f3f3f3; border-top: 5px solid #667eea;
+    border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;
+}
+.small-spinner { width: 30px; height: 30px; border-width: 3px; position: absolute; border-top-color: var(--primary); }
+
+/* --- GAME SHARED UI (Timer, Progress, Feedback) --- */
+#game-area {
+    padding: 15px 20px; flex: 1;
+    display: flex; flex-direction: column; justify-content: space-between;
+    overflow-y: auto; max-height: 100%;
+}
+.progress-bar {
+    width: 100%; 
+    background: #eee; 
+    height: 8px; /* Or 10px, whatever you prefer */
+    border-radius: 5px; 
+    margin-bottom: 15px; 
+    margin-top: 20px !important;
+    position: relative; 
+    flex-shrink: 0;
+    
+    /* CRITICAL FIX: Clip the inner fill so corners stay round */
+    overflow: hidden; 
+}
+#progress-text { position: absolute; width: 100%; text-align: center; font-size: 0.6rem; line-height: 8px; color: #666; font-weight: bold; z-index: 2; }
+.progress-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.3s; }
+
+.game-timer {
+    position: absolute; top: 15px; right: 20px;
+    font-family: 'Courier New', monospace; font-weight: bold; font-size: 1.2rem;
+    color: var(--primary); background: rgba(255,255,255,0.8);
+    padding: 5px 10px; border-radius: 8px; border: 1px solid #eee; z-index: 50;
+}
+.countdown-text { font-size: 8rem; font-weight: bold; color: var(--primary); animation: zoomSnap 0.9s ease-in-out infinite; }
+
+.feedback-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255, 255, 255, 0.9); display: flex; flex-direction: column;
+    justify-content: center; align-items: center; z-index: 100;
+    backdrop-filter: blur(2px); animation: fadeIn 0.3s ease-out;
+}
+.feedback-icon { font-size: 5rem; margin-bottom: 20px; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.feedback-text { font-size: 2rem; font-weight: bold; color: #333; animation: slideUp 0.4s ease-out; }
+
+/* Mini Popup Tooltip */
+#mini-popup {
+    position: fixed; background: #333; color: white;
+    padding: 8px 12px; border-radius: 8px; font-size: 0.85rem;
+    pointer-events: none; z-index: 5000;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2); text-align: center;
+    white-space: nowrap; opacity: 0; transition: opacity 0.1s;
+    transform: translate(-50%, -100%);
+}
+#mini-popup.show { opacity: 1; }
+.popup-arrow {
+    position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
+    width: 0; height: 0; border-left: 5px solid transparent;
+    border-right: 5px solid transparent; border-top: 5px solid #333;
+}
+#mini-pinyin { display: block; color: #fda085; font-size: 0.8rem; margin-bottom: 2px; }
+#mini-english { display: block; font-weight: bold; }
+
+
+/* --- WORD BANK TABLE CORRECTIONS --- */
+
+.table-container {
+    width: 100%;
+    overflow-x: hidden; /* Prevents horizontal scroll bar */
+}
+
+.word-table {
+    width: 100%;
+    table-layout: fixed; /* CRITICAL: Forces columns to fit inside the screen width */
+    border-collapse: collapse;
+}
+
+.word-table td {
+    white-space: normal;       /* Allows text to wrap to new lines */
+    word-wrap: break-word;     /* Breaks long words that don't fit */
+    overflow-wrap: break-word; /* Modern browser support for breaking words */
+    word-break: break-word;    /* Ensures even long strings without spaces break */
+    
+    padding: 10px 5px;         /* Adjust padding to save horizontal space */
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+/* Optional: Adjust specific column widths to look better */
+/* Column 1: Hanzi (Keep small) */
+.word-table th:nth-child(1), 
+.word-table td:nth-child(1) {
+    width: 15%; 
+}
+
+/* Column 5: Actions (Keep small) */
+.word-table th:last-child, 
+.word-table td:last-child {
+    width: 15%;
+    text-align: center;
+}
+
+/* --- FIXES FOR NEW FEATURES --- */
+
+/* --- FIX: Global Search Modal --- */
+#global-search-modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background); /* Ensure solid background */
+    z-index: 2000; /* Higher than header (z-index 10) */
+    padding: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden !important;
+}
+
+/* Ensure the header row inside the modal is visible */
+#global-search-modal .header-row {
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0; /* Prevents header from squishing */
+}
+
+#global-search-modal .table-container {
+    flex: 1;            /* Take all remaining height */
+    overflow-y: auto;
+    width: 100%;
+    padding: 0 15px; /* Matches the header row padding */
+    box-sizing: border-box;
+    overflow-x: hidden; /* Prevents side-scrolling jitter */
+    min-height: 0;      /* Critical for Flexbox scrolling */
+    padding-bottom: 50px;
+}
+
+#global-search-modal .word-table {
+    width: 100%;
+    margin: 0 auto; /* Centers the table block */
+    border-collapse: collapse;
+    table-layout: fixed; /* Keeps columns stable */
+   
+}
+
+#global-search-modal .word-table th {
+    text-align: center; /* Center the text */
+    padding: 10px 5px;  /* Match the cell padding */
+    box-sizing: border-box; /* Prevent padding from breaking layout */
+    background: #f8f9fa; /* Optional: slight background to distinguish header */
+    border-bottom: 2px solid #eee;
+  
+}
+
+#global-search-modal .word-table th,
+#global-search-modal .word-table td {
+    text-align: center !important; /* Force center alignment */
+    padding: 12px 4px; /* Vertical breathing room */
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+
+#global-search-modal .word-table tr {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* 3. Horizontal Scroll for Suggestions */
+#suggestion-strip {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto !important;
+    white-space: nowrap;
+    /* Added vertical padding so characters don't get cut off */
+    padding: 15px 10px !important; 
+    min-height: 60px; /* Ensure enough height */
+    align-items: center;
+    background: white;
+    border-bottom: 1px solid #eee;
+}
+
+
+.suggestion-chip {
+    flex-shrink: 0;
+    padding: 8px 16px !important; /* Bigger click area */
+    background: #f0f7ff;
+    border: 1px solid #cce4ff;
+    border-radius: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.1rem; /* Clearer text */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.chat-input-zone {
+    position: relative !important; /* Anchors the absolute suggestion strip */
+    z-index: 50;
+}
+
+#suggestion-strip::-webkit-scrollbar {
+    display: none; /* Hide scrollbar Chrome/Safari */
+}
+
+
+/* --- NEW: Group Selection Toggles --- */
+.group-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: white;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.2s;
+}
+
+.group-row:last-child {
+    border-bottom: none;
+}
+
+.group-label {
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--text);
+}
+
+/* The Switch Container */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 30px;
+    flex-shrink: 0;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* The Slider */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Checked State (Active) */
+input:checked + .slider {
+    background-color: var(--primary); /* Green when active */
+}
+
+input:checked + .slider:before {
+    transform: translateX(22px);
+}
+
+#group-selection-modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--background);
+    z-index: 1600;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box; /* Contains padding inside width */
+}
+
+/* --- COMPACT ADD WORD MENU --- */
+
+#add-word-menu {
+    width: 100%;
+    height: 100%;
+    padding: 20px !important; /* Tighter container */
+    box-sizing: border-box;
+    max-width: none;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+#add-word-menu h2 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    text-align: center;
+    color: var(--primary);
+}
+
+/* Tighter Input Group */
+#add-word-menu .input-group {
+    gap: 10px; /* Reduced gap */
+    background: transparent;
+    padding: 15px;
+    border-radius: 16px;
+    border: none;
+    box-shadow: none;
+}
+
+#add-word-menu label {
+    font-size: 0.85rem;
+    margin-bottom: -5px; /* Pull labels closer to inputs */
+    color: #888;
+}
+
+#add-word-menu input {
+    padding: 8px 12px; /* Smaller inputs */
+    font-size: 0.95rem;
+    border-radius: 10px;
+}
+
+/* Compact Buttons */
+#add-word-menu .action-buttons-row {
+    margin-top: 10px;
+    gap: 10px;
+}
+
+#add-word-menu .btn {
+    padding: 10px;
+    font-size: 0.85rem;
+    height: 35px;
+}
+
+input[type=range] {
+    padding: 0; 
+    margin: 10px 0;
+    width: 100%; 
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+
+/* --- FIX: Story Text Styling --- */
+.story-word {
+    border-bottom: none !important; /* Removes green/dashed lines */
+    text-decoration: none !important;
+    cursor: pointer;
+    margin: 0 1px;
+}
+
+/* Ensure unknown words are same size/weight, just colored */
+.story-word.unknown-word {
+    color: var(--text) !important; /* Make them black (standard text color) */
+    font-weight: normal !important; 
+    font-size: 100% !important;    /* Ensure same size as known words */
+    border-bottom: none !important; /* No lines */
+    cursor: pointer;
+}
+
+/* --- NEW: Notebook Theme for Word Bank --- */
+.notebook-theme {
+    background-color: #fff9c4 !important; /* Yellow paper */
+    background-image: linear-gradient(#e1e1e1 1px, transparent 1px) !important;
+    background-size: 100% 30px !important; /* Line spacing */
+    font-family: 'Courier New', Courier, monospace !important; 
+    color: #333 !important;
+}
+
+/* Hide table borders in notebook mode for a cleaner look */
+.notebook-theme .word-table td, 
+.notebook-theme .word-table th {
+    border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+}
+
+
+.hidden {
+    display: none !important;
+}
+
+.notebook-theme .word-table thead {
+    display: none !important;
+}
+
+/* Optional: Ensure the first row of words doesn't hit the top border too hard */
+.notebook-theme .word-table tbody tr:first-child td {
+    border-top: none !important;
+}
+
+
+#main-menu {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns */
+    grid-template-rows: min-content;
+    align-content: start;
+    gap: 15px;
+    padding: 20px;
+}
+
+
+#main-menu, 
+#game-area, 
+#word-list-section, 
+#story-hub,
+#chat-container {
+    flex: 1; /* Fills the rest of the height below header */
+    overflow-y: auto; /* Scroll INSIDE this area, not the whole body */
+    width: 100%;
+    min-height: 0;
+    padding-bottom: 30px; /* Space for scrolling at bottom */
+    box-sizing: border-box;
+}
+
+#story-hub, #word-list-section, #game-area, #practice-hub, #arcade-hub {
+    height: 100%;
+    padding-top: 20px; /* Small breathing room at top */
+}
+
+
+
+#game-area, .game-container {
+    height: 100%;
+    width: 100%;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+
+#confetti-canvas {
+    position: absolute !important; /* This is the key. Without this, it takes up space. */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Let clicks pass through it */
+    z-index: 999; /* Sit on top of everything */
+    display: block; /* Ensures it behaves reliably */
+}
+
+
+
+#story-hub, 
+#word-list-section, 
+#game-area, 
+#practice-hub, 
+#arcade-hub,
+#main-menu,       /* Added Main Menu here */
+#add-word-menu,   /* Added Add Word Menu here */
+#chat-container,  /* Added Chat Container here */
+#writer-container {
+    flex: 1;            /* Take only REMAINING space */
+    height: auto;       /* Do not force 100% height */
+    min-height: 0;      /* Critical for Flexbox nested scrolling */
+    overflow-y: auto;   /* Enable internal scrolling */
+    overflow-x: hidden;
+    padding: 20px;
+    padding-bottom: 80px; /* Extra space for bottom of screen/thumbs */
+    width: 100%;
+    box-sizing: border-box;
+    
+    /* Native Scroll Feel */
+    -webkit-overflow-scrolling: touch; 
+    overscroll-behavior-y: contain; 
+}
+
+/* 2. WebKit (Chrome, Safari, Edge) */
+#main-menu::-webkit-scrollbar, 
+#practice-hub::-webkit-scrollbar, 
+#arcade-hub::-webkit-scrollbar, 
+#story-hub::-webkit-scrollbar, 
+#word-list-section::-webkit-scrollbar,
+.table-container::-webkit-scrollbar,
+#chat-messages::-webkit-scrollbar,
+#writer-group-menu::-webkit-scrollbar { 
+    display: none; 
+}
+
+#main-menu, #story-hub, #word-list-section, .table-container {
+    scrollbar-width: none;  
+}
+
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+
+/* --- EPIC VICTORY MODAL (Star Wars Style) --- */
+
+.epic-modal-wrapper { perspective: 800px; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; }
+.epic-modal-card {
+    background: linear-gradient(135deg, #2b2b2b, #1a1a1a); color: white;
+    border: 2px solid #ffd700; border-radius: 20px; padding: 30px;
+    width: 90%; max-width: 350px; text-align: center;
+    transform: rotateX(10deg); box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 20px rgba(255, 215, 0, 0.2);
+    animation: epicPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.epic-title {
+    font-size: 2.2rem; font-weight: 900; color: #ffd700;
+    text-transform: uppercase; text-shadow: 0 5px 0 #b8860b, 0 10px 10px rgba(0,0,0,0.5);
+    margin: 0 0 20px 0; transform: translateZ(20px);
+}
+.liquid-meter-container {
+    width: 100%; height: 30px; background: rgba(255,255,255,0.1);
+    border-radius: 15px; overflow: hidden; position: relative;
+    border: 1px solid rgba(255, 215, 0, 0.3); margin: 20px 0;
+}
+.liquid-fill {
+    height: 100%; width: 0%; background: linear-gradient(90deg, #ffd700, #ffb300);
+    border-radius: 15px; position: relative; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 15px #ffd700;
+}
+.liquid-fill::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0) 40%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 60%);
+    background-size: 200% 100%; animation: shimmer 2s infinite;
+}
+@keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+@keyframes epicPopIn { 0% { opacity: 0; transform: translateY(100px) rotateX(30deg) scale(0.8); } 100% { opacity: 1; transform: translateY(0) rotateX(10deg) scale(1); } }

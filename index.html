@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chinese Flashcards AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/core.css">
+
+    <link rel="stylesheet" href="css/features.css">
+
+    <link rel="stylesheet" href="css/features/flashcards.css">
+
+    <link rel="stylesheet" href="css/features/sentence-builder.css">
+    <link rel="stylesheet" href="css/features/image-match.css">
+    <link rel="stylesheet" href="css/features/listening-match.css">
+
+    <link rel="stylesheet" href="css/features/story-reader.css">
+    <link rel="stylesheet" href="css/features/hanzi-writer.css">
+    <link rel="stylesheet" href="css/features/talking-pal.css">
+
+    <link rel="stylesheet" href="css/features/character.css">
+
+    <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+
+    <div class="app-container">
+
+        <canvas id="confetti-canvas" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index: 999;"></canvas>
+
+        <button id="btn-char-profile" onclick="window.openCharacterHub()" 
+            style="position: absolute; left: 20px; top: 20px; background: white; border: 2px solid #eee; width: 45px; height: 45px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; z-index: 20; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center;">
+            🐲
+        </button>
+
+        <button id="btn-main-settings" class="settings-btn" onclick="openSettings()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 1.5rem; cursor: pointer; z-index: 10;">⚙️</button>
+
+        <header class="fun-header">
+            <div class="mascot-container">
+                <div class="mascot">🐼</div> <div class="speech-bubble">Nǐ hǎo! Ready to learn?</div>
+            </div>
+            <div class="streak-pill">
+                🔥 5 Days
+            </div>
+        </header>
+
+        <div id="loading-overlay" class="hidden">
+            <div class="spinner"></div>
+            <p id="loading-text">AI is processing your lesson...</p>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 5px;">This might take a minute ☕</p>
+            <button class="btn sm-ghost" style="margin-top: 20px; border: 1px solid #ccc; padding: 8px 15px;" onclick="minimizeLoading()">
+                ⬇ Run in Background
+            </button>
+        </div>
+
+        <div id="toast-notification" class="toast hidden">
+            <span id="toast-message">Message</span>
+            <button onclick="hideToast()" style="margin-left: 10px;">✕</button>
+        </div>
+
+        <div id="main-menu" class="fade-in">
+            <div class="menu-zone review-zone" onclick="openDailyModeSelection()">
+                <div class="zone-icon">🚀</div>
+                <div class="zone-info">
+                    <h3>Daily Practice</h3>
+                    <p id="daily-status-text">Learn & Review Words and Sentences with Flashcards!</p>
+                </div>
+                <div class="zone-arrow">❯</div>
+            </div>
+
+            <div class="menu-zone practice-zone" onclick="openPracticeHub()">
+                <div class="zone-icon">🏮</div>
+                <div class="zone-info">
+                    <h3>Practice Zone</h3>
+                    <p>Practice Reading, Writing & Having Conversations!</p>
+                </div>
+                <div class="zone-arrow">❯</div>
+            </div>
+
+            <div class="menu-zone arcade-zone" onclick="openArcadeHub()">
+                <div class="zone-icon">🎮</div>
+                <div class="zone-info">
+                    <h3>Games & Challenges</h3>
+                    <p>Build Sentences, Match Images, and Practice Your Listening Skills!</p>
+                </div>
+                <div class="zone-arrow">❯</div>
+            </div>
+
+            <div class="secondary-menu">
+                <button class="btn secondary" onclick="openGroupSelection()">📚 Select Word Groups</button>
+                <button class="btn secondary" onclick="openGlobalSearch()">🔍 Find a Word</button>
+                <button class="btn secondary" onclick="openGlobalTranslator()">🌐 Translate</button>
+                <button class="btn secondary" onclick="showWordBank()">📖 Word Groups</button>
+                <button class="btn secondary" onclick="showAddWordMenu()">➕ Add a Word</button>
+                <div class="magic-wrapper">
+                    <button class="magic-btn btn" onclick="triggerMagicUpload()">✨ Import Your Word Group!</button>
+                </div>
+            </div>
+
+            <div id="global-translator-modal" class="modal-overlay hidden">
+                <div class="modal-content" style="width: 90%; max-width: 500px;">
+                    <div class="header-row" style="margin-bottom: 15px;">
+                        <h3>🌐 Translate from English to Chinese & Vice Versa!</h3>
+                        <button class="btn sm-ghost" onclick="closeGlobalTranslator()">✕</button>
+                    </div>
+                    
+                    <textarea id="trans-input" placeholder="Enter English or Chinese text here..." 
+                            style="width:100%; height:100px; padding:10px; border-radius:12px; border:1px solid #ddd; resize:none; font-family:inherit; box-sizing: border-box;"></textarea>
+                    
+                    <button id="btn-global-trans" class="btn primary full-width" style="margin-top:15px;" onclick="runGlobalTranslation()">
+                        Translate
+                    </button>
+
+                    <div id="trans-result-box" class="hidden" style="margin-top:20px; text-align:left; background:#f8f9fa; padding:15px; border-radius:12px; border:1px solid #eee;">
+                        <div id="trans-result-text" style="font-size:1.1rem; color:#333; font-weight:bold; margin-bottom:5px;"></div>
+                        <div id="trans-result-sub" style="font-size:0.9rem; color:#666;"></div>
+                    </div>
+                </div>
+            </div>
+            <input type="file" id="magic-upload" accept=".pdf, image/*, .txt, .csv" style="display:none" onchange="handleMagicUpload(event)">
+        </div>
+
+        <div id="global-search-modal" class="hidden fade-in">
+            <div class="header-row" style="padding: 15px; border-bottom: 1px solid #eee; background: white;">
+                <h2>🔍 Find a Word in Your Word Groups</h2>
+                <button class="btn sm-ghost" onclick="closeGlobalSearch()">✕ Close</button>
+            </div>
+            
+            <div style="padding: 15px;">
+                <input type="text" id="global-search-input" placeholder="Type Hanzi, Pinyin or English..." 
+                    style="width:100%; padding:12px; border-radius:12px; border:1px solid #ccc; font-size:1rem; box-sizing: border-box;"
+                    onkeyup="handleGlobalSearch()">
+            </div>
+
+            <div class="table-container" style="flex:1; overflow-y:auto; padding:0 15px 15px 15px;">
+                <table class="word-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 14%;">Hanzi</th>
+        
+                            <th class="desktop-only" style="width: 14%;">Pinyin</th>
+                            
+                            <th style="width: 14%;">English</th>
+                            
+                            <th style="width: 10%;">Due</th>
+                            
+                            <th style="width: 14%;">Group</th>
+                            
+                            <th style="width: 20%;">Practice</th>
+                        </tr>
+                    </thead>
+                    <tbody id="global-search-body"></tbody>
+                </table>
+                <div id="global-search-empty" style="text-align:center; color:#999; margin-top:30px;">
+                    Type something to search...
+                </div>
+            </div>
+        </div>
+
+        <div id="arcade-hub" class="hidden fade-in" style="padding:20px;">
+            <div class="header-row">
+                <h2>🎮 The Arcade</h2>
+                <button class="btn sm-ghost" onclick="returnToMenu()">✕</button>
+            </div>
+            <div class="arcade-grid" style="margin-top:20px;">
+                <button class="arcade-btn" onclick="startArcadeGame('sentence-builder')">
+                    <span class="icon">🧩</span><span class="label">Build Sentences</span>
+                </button>
+                <button class="arcade-btn" onclick="startArcadeGame('image-match')">
+                    <span class="icon">🖼️</span><span class="label">Match the Image</span>
+                </button>
+                <button class="arcade-btn" onclick="startArcadeGame('listening-match')">
+                    <span class="icon">🎧</span><span class="label">Practice Listening</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="practice-hub" class="hidden fade-in" style="padding:20px;">
+            <div class="header-row">
+                <h2>🏮 Practice Zone</h2>
+                <button class="btn sm-ghost" onclick="returnToMenu()">✕</button>
+            </div>
+            <div class="action-buttons-vertical" style="margin-top:20px;">
+                <button class="btn mode-btn large" onclick="openStoryHub()">
+                    <span class="icon">📖</span> Reading Corner
+                </button>
+                <button class="btn mode-btn large" onclick="openWriterHub()">
+                    <span class="icon">📖</span> Writing Characters
+                </button>
+                <button class="btn mode-btn large" onclick="openChatHub()">
+                    <span class="icon">💬</span> Conversation Pal
+                </button>
+            </div>
+            
+        </div>
+
+        <div id="magic-name-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h3>Name this Lesson</h3>
+                <p style="color:#666; font-size: 0.9rem; margin-bottom:15px;">Give a name for your new words:</p>
+                <div class="input-group">
+                    <input type="text" id="magic-group-name" placeholder="e.g. Chapter 5" style="text-align:center;">
+                </div>
+                <div class="action-buttons-row">
+                    <button class="btn primary" onclick="confirmMagicUpload()">Start Magic</button>
+                    <button class="btn ghost" onclick="cancelMagicUpload()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="compression-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🐘</div>
+                <h3>File is too big!</h3>
+                <p style="color:#666; font-size: 0.9rem; margin-bottom: 15px;">The limit is 3MB. Please compress it.</p>
+                <div class="action-buttons-vertical">
+                    <a href="https://www.ilovepdf.com/compress_pdf" target="_blank" class="btn primary full-width" style="text-decoration:none;">Open Compressor Tool 🔗</a>
+                    <button class="btn ghost full-width" onclick="closeModal('compression-modal')">Okay, I'll do it</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="mode-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h3>Select Review Track</h3>
+                <div class="action-buttons-vertical">
+                    <button class="btn primary full-width" onclick="checkSpecificDailyStatus('words')">
+                        <span id="status-icon-words">⭕</span> Vocabulary Cards
+                    </button>
+                    <button class="btn secondary full-width" onclick="checkSpecificDailyStatus('sentences')">
+                        <span id="status-icon-sentences">⭕</span> Sentence Reading
+                    </button>
+                </div>
+                <button class="btn ghost full-width" onclick="closeModal('mode-modal')">Cancel</button>
+            </div>
+        </div>
+
+        <div id="limit-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h3>🎯 How many items?</h3>
+                <div class="goal-grid">
+                    <button class="goal-btn-large" onclick="setLimitAndStart(10)">10</button>
+                    <button class="goal-btn-large" onclick="setLimitAndStart(20)">20</button>
+                    <button class="goal-btn-large" onclick="setLimitAndStart(30)">30</button>
+                    <button class="goal-btn-large" onclick="setLimitAndStart(50)">50</button>
+                </div>
+                <button class="btn ghost full-width" onclick="closeModal('limit-modal')">Cancel</button>
+            </div>
+        </div>
+
+        <div id="already-done-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🎉</div>
+                <h3>Good work!</h3>
+                <p id="already-done-text">You have already done this review today!</p>
+                <div class="action-buttons-row">
+                    <button class="btn primary" onclick="forceStartExtraSession()">Yes, Continue</button>
+                    <button class="btn ghost" onclick="closeModal('already-done-modal')">No, I'm good</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="completion-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🏆</div>
+                <h3>Session Complete!</h3>
+                <button class="btn primary full-width" onclick="finishSession()">Back to Menu</button>
+            </div>
+        </div>
+
+        <div id="alert-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <p id="alert-msg">Message</p>
+                <button class="btn primary full-width" onclick="closeModal('alert-modal')">OK</button>
+            </div>
+        </div>
+
+        <div id="confirm-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h3>Are you sure?</h3>
+                <p id="confirm-msg">Question</p>
+                <div class="action-buttons-row">
+                    <button id="confirm-yes-btn" class="btn primary">Yes</button>
+                    <button class="btn ghost" onclick="closeModal('confirm-modal')">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="add-word-menu" class="hidden fade-in">
+            <h2>Add New Word</h2>
+            <div class="input-group">
+                <label>Group Name</label>
+                <input type="text" id="input-group" list="group-suggestions" placeholder="e.g. Lesson 10">
+                <datalist id="group-suggestions"></datalist>
+                <label>Hanzi</label>
+                <input type="text" id="input-hanzi" placeholder="e.g. 水">
+                <label>Pinyin</label>
+                <input type="text" id="input-pinyin" placeholder="e.g. shuǐ">
+                <label>English</label>
+                <input type="text" id="input-english" placeholder="e.g. Water">
+            </div>
+            <div class="action-buttons-row">
+                <button class="btn primary" onclick="saveNewWord()">Save Word</button>
+                <button class="btn ghost" onclick="returnToMenu()">Cancel</button>
+            </div>
+        </div>
+
+        <div id="word-list-section" class="hidden fade-in">
+            <div class="header-row">
+                <h2 id="wb-title">Your Word Groups</h2>
+                <button class="btn sm-ghost" onclick="returnToMenu()">✕ Close</button>
+            </div>
+            <div id="wb-group-view">
+                <div id="wb-group-grid" class="folder-grid"></div>
+            </div>
+            <div id="wb-detail-view" class="hidden">
+                <div class="sub-controls">
+                    <button class="btn sm-ghost" onclick="backToFolders()">← Back</button>
+                    <input type="text" id="search-bar" placeholder="🔍 Search..." onkeyup="filterTable()">
+                </div>
+                <div id="stats-container" class="stats-box">
+                    <div class="stats-toggle">
+                        <button id="stat-btn-words" class="toggle-btn active" onclick="updateChartMode('words')">Words</button>
+                        <button id="stat-btn-sentences" class="toggle-btn" onclick="updateChartMode('sentences')">Sentences</button>
+                    </div>
+                    <div id="chart-wrapper" class="chart-wrapper">
+                        <canvas id="progressChart"></canvas>
+                        <div id="chart-message" class="hidden" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#999;">No data</div>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="word-table">
+                        <thead>
+                            <tr>
+                                <th>Hanzi</th>
+                                <th class="desktop-only">Pinyin</th>
+                                <th>English</th>
+                                <th>Due</th>    <th>Actions</th> </tr>
+                        </thead>
+                        <tbody id="word-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-area" class="hidden fade-in">
+            <div id="game-timer" class="game-timer hidden">00:00</div>
+
+            <div id="countdown-overlay" class="modal-overlay hidden" style="background: rgba(255,255,255,0.95); z-index: 5000;">
+                <div id="countdown-number" class="countdown-text">3</div>
+            </div>
+
+            <div id="feedback-overlay" class="feedback-overlay hidden">
+                <div class="feedback-icon" id="feedback-icon">✅</div>
+                <div class="feedback-text" id="feedback-text">Correct!</div>
+            </div>
+
+            <div id="streak-overlay" class="feedback-overlay hidden">
+                <div class="feedback-icon">🔥</div>
+                <div class="feedback-text" style="color: #e67e22; font-size: 2.5rem;">5 in a Row!</div>
+                <div style="font-size: 1.2rem; color: #666; margin-top: 10px;">You are on fire!</div>
+            </div>
+
+            <div id="listening-game-wrapper" class="hidden fade-in" style="height: 100%; width: 100%; position: relative; display: flex; flex-direction: column;">
+    
+                <div id="listening-game-container" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    </div>
+
+            </div>
+
+            <div id="interim-modal" class="modal-overlay hidden" style="background: rgba(255,255,255,0.95); z-index: 6000;">
+                <div style="text-align: center;">
+                    <div class="spinner" style="margin: 0 auto 20px auto; border-top-color: var(--primary);"></div>
+                    <h2 id="interim-text" style="color: var(--primary); font-size: 1.5rem;">Loading...</h2>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <span id="progress-text">Word 1 of 10</span>
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+
+            <div id="flashcard-container" class="hidden" style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+    
+                <div id="flashcard" class="flashcard" onclick="flipCard()" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 90%; max-width: 350px; perspective: 1000px; cursor: pointer;">
+                    
+                    <div id="card-front" class="card-face" style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 100%; height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <button class="card-audio-btn" onclick="playCardAudio(event)">🔊</button>
+                        
+                        <div id="flashcard-hanzi" style="font-size: 3.5rem; font-weight: bold; color: #333; margin-bottom: 20px;margin-top: 40px">汉字</div>
+                        <div style="color: #999; font-size: 0.9rem; margin-top: auto;">Tap to flip</div>
+                    </div>
+
+                    <div id="card-back" class="card-face"> <div id="flashcard-pinyin" style="font-size: 1.5rem; color: #667eea; font-weight: bold; margin-bottom: 10px;"></div>
+                        <button class="card-audio-btn" onclick="playCardAudio(event)">🔊</button>
+                    
+                        <div id="flashcard-english" style="font-size: 1.2rem; color: #555; margin-bottom: 20px;"></div>
+                        <div id="flashcard-sentence" style="font-size: 1rem; color: #777; font-style: italic; border-top: 1px solid #eee; padding-top: 15px; width: 100%;"></div>
+                    </div>
+
+                </div>
+
+                <div id="srs-controls" class="srs-controls hidden" style="margin-top: 20px;">
+                    <button onclick="rateWord('again')" class="btn-srs again">
+                        Again <span class="sub-text">Now</span>
+                    </button>
+                    <button onclick="rateWord('hard')" class="btn-srs hard">
+                        Weak <span class="sub-text">1d</span>
+                    </button>
+                    <button onclick="rateWord('good')" class="btn-srs good">
+                        Strong <span class="sub-text">7d</span>
+                    </button>
+                    <button onclick="rateWord('easy')" class="btn-srs easy">
+                        Bury <span class="sub-text">30d</span>
+                    </button>
+                </div>  
+
+            </div>
+
+            <div id="builder-container" class="hidden" style="height: 100%; display: flex; flex-direction: column; position: relative;">
+    
+                <button class="btn sm-ghost end-game-btn" onclick="returnToMenu()">✕ End Game </button>
+
+                <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px;">
+                    <div id="builder-card" class="builder-card" style="margin-top: 20px;">
+                        <h3 id="builder-english" class="card-hint">...</h3>
+                        <div id="builder-dropzone" class="builder-dropzone"></div>
+                        <div id="builder-feedback" class="feedback-msg hidden"></div>
+                    </div>
+                </div>
+
+                <div class="builder-controls">
+                    <div class="mode-switcher">
+                        <button id="btn-mode-scramble" class="mode-pill active" onclick="switchBuilderMode('scramble')">Scramble</button>
+                        <button id="btn-mode-fill" class="mode-pill" onclick="switchBuilderMode('fill')">Fill Blanks</button>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="window.resetBuilder()" class="btn secondary" style="flex: 1;">↺ Try Again</button>
+                        <button onclick="checkBuilderAnswer()" class="btn primary" style="flex: 2;">Check Answer</button>
+                    </div>
+                    
+                    <div id="builder-words" class="word-bank"></div>
+
+                </div>
+            </div>
+
+            <div id="image-match-container" class="hidden fade-in" style="position: relative; height: 100%;">
+                <button class="btn sm-ghost end-game-btn" onclick="returnToMenu()">✕ End Game</button>
+                
+                <div class="image-box-wrapper">
+                    <div id="img-loading" class="spinner small-spinner"></div>
+                    <img id="quiz-image" src="" alt="Quiz Image" style="opacity:0">
+                </div>
+                <div id="image-options" class="options-grid-2x2"></div>
+            </div>
+
+            <div id="srs-controls" class="srs-grid hidden">
+                <button onclick="rateWord('again')" class="btn-srs again">Again</button>
+                <button onclick="rateWord('hard')" class="btn-srs hard">Hard</button>
+                <button onclick="rateWord('good')" class="btn-srs good">Good</button>
+                <button onclick="rateWord('easy')" class="btn-srs easy">Easy</button>
+            </div>
+
+            
+        </div>
+
+        <div id="mini-popup" class="hidden">
+            <span id="mini-pinyin"></span>
+            <span id="mini-english"></span>
+            <div class="popup-arrow"></div>
+        </div>
+
+        <div id="story-hub" class="hidden fade-in">
+            <div class="header-row">
+                <h2>Reading Library</h2>
+                <button class="btn sm-ghost" onclick="returnToMenu()">✕ Exit</button>
+            </div>
+
+            <div id="story-step-1">
+                <h3>1. Choose a Lesson</h3>
+                
+                <button class="btn magic-btn full-width" onclick="document.getElementById('story-gen-modal').classList.remove('hidden')" style="margin-bottom: 15px;">
+                    ✨ Story Generator
+                    <p style="margin:5px 0 0 0; color:rgba(255,255,255,0.8); font-size:0.85rem;">Read about your favorite topics!</p>
+                </button>
+
+                <div id="story-group-list" class="folder-grid"></div>
+            </div>
+
+            <div id="story-step-2" class="hidden">
+                <h3>2. Choose Difficulty</h3>
+                <button class="btn sm-ghost" onclick="backToStoryGroups()">← Back</button>
+                <div class="action-buttons-vertical" style="margin-top:15px;">
+                    <button class="btn secondary full-width" onclick="filterStories('starter')">🐣 Starter (100 words)</button>
+                    <button class="btn secondary full-width" onclick="filterStories('basic')">🚶 Getting Around (200)</button>
+                    <button class="btn secondary full-width" onclick="filterStories('intermediate')">🎓 Intermediate (300)</button>
+                    <button class="btn secondary full-width" onclick="filterStories('advanced')">🚀 Advanced (500)</button>
+                    <button class="btn secondary full-width" onclick="filterStories('pro')">🦁 Pro (750)</button>
+                </div>
+            </div>
+            
+            <div id="story-step-3" class="hidden">
+                <h3>3. Select a Story</h3>
+                <button class="btn sm-ghost" onclick="backToDifficulty()">← Back</button>
+                <div id="story-list-container" class="action-buttons-vertical"></div>
+            </div>
+        </div>
+
+        <div id="story-reader" class="hidden fade-in">
+            <div class="reader-header">
+                <button class="btn sm-ghost" onclick="closeStoryReader()">← Back</button>
+                
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div style="display: flex; flex-direction: column; align-items: center; margin-right: 5px;">
+                        <span style="font-size: 0.7rem; color: #888; margin-bottom: 8px;">Speed: <span id="speed-val">x0.8</span>x</span>
+                        <input type="range" id="tts-speed" min="0.75" max="1.25" step="0.05" value="0.8" 
+                            style="accent-color: var(--primary);" 
+                            oninput="updateTTSRate(this.value)">
+                    </div>
+
+                    <button id="btn-play-story" class="btn sm-ghost" onclick="playStoryAudio()" >▶️</button>
+                    <button id="btn-stop-story" class="btn sm-ghost" onclick="stopStoryAudio()">⏹️</button>
+                    
+                    <button id="btn-toggle-pinyin" class="btn sm-ghost" onclick="togglePinyin()">Pinyin</button>
+                    <button id="btn-toggle-trans" class="btn sm-ghost" onclick="toggleTranslation()">English</button>
+                </div>
+            </div>
+
+            <div id="story-live-translation" class="hidden"></div>
+            
+            <div class="reader-content">
+
+                <div class="story-titles-group">
+                <h2 id="story-title">Title</h2>
+                <h3 id="story-title-en">English Title</h3>
+                </div>
+                
+                <div id="story-text-hanzi"></div>
+                
+                <div id="story-text-pinyin" class="hidden"></div>
+                
+                <div id="story-text-english" class="hidden"></div>
+                
+                <hr style="border-color: var(--border);">
+
+                <h3>📝 Comprehension</h3>
+                <div id="questions-container"></div>
+                <div style="height: 80px;"></div>
+            </div>
+        </div>
+        <section id="writer-container" class="hidden">
+            <div class="writer-header" style="padding: 10px; display: flex; align-items: center; border-bottom: 1px solid #eee;">
+                <button class="btn sm-ghost" onclick="window.returnToMenu()">✕ Exit</button>
+                <h2 style="flex: 1; text-align: center; margin: 0; font-size: 1.0rem;">Character Writer</h2>
+            </div>
+
+            <div id="writer-group-menu" class="menu-zone" style="display: flex; flex-direction: column; gap: 8px; padding: 10px;">
+                </div>
+
+            <div id="writer-word-selection" class="hidden">
+                <div id="word-selection-header" style="margin-bottom: 10px;"></div>
+                <div id="writer-grid" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                <div id="writer-list-container"></div>
+                <button id="writer-scroll-top" class="hidden" onclick="document.getElementById('writer-word-selection').scrollTo({top: 0, behavior: 'smooth'})">
+                    ↑
+                </button>
+            </div>
+
+            <div id="writer-canvas-area" class="hidden" style="text-align: center; padding-top: 20px;">
+                <div id="writer-reference-header">
+                    <h1 id="writer-target-hanzi" style="font-size: 4rem; margin: 0; color: var(--primary);"></h1>
+                    <p id="writer-target-pinyin" style="color: #666; font-size: 1.2rem; margin-bottom: 20px;"></p>
+                </div>
+
+                <div id="writer-canvas-wrapper" style="position: relative; margin: 0 auto; display: inline-block;">
+                    <div id="writer-canvas-target"></div>
+                </div>
+
+                <div class="writer-controls" style="margin-top: 30px; display: flex; flex-direction: column; gap: 12px; padding: 0 40px;">
+                    <button class="btn primary" onclick="window.resetCanvas()">Clear</button>
+                    <button class="btn ghost" onclick="window.animateCharacter()">Show Steps</button>
+                    <button id="btn-toggle-ghost" class="btn ghost" onclick="window.toggleGhost()">Show Shadow</button>
+                </div>
+            </div>
+        </section>
+        <section id="chat-container" class="hidden">
+            <div class="writer-header" style="padding: 15px; display: flex; align-items: center; border-bottom: 1px solid #eee; background: white;">
+                <button class="btn sm-ghost" onclick="window.returnToMenu()">✕ Exit</button>
+                <h2 style="flex: 1; text-align: center; margin: 0; font-size: 1.1rem;">Conversation Pal</h2>
+                <button class="btn sm-ghost" onclick="window.triggerQuizSetup()" style="margin-right:10px;">📝 Quiz</button>
+                <button class="btn sm-ghost" onclick="window.toggleChatSettings()">⚙️</button>
+            </div>
+
+            <div id="chat-settings-panel" class="hidden" style="position: absolute; top: 60px; right: 10px; background: white; padding: 20px; box-shadow: 0 5px 25px rgba(0,0,0,0.15); border-radius: 16px; z-index: 200; border: 1px solid #eee; width: 260px;">
+    
+                <button onclick="window.toggleChatSettings()" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 1.2rem; color: #999; cursor: pointer; padding: 5px; line-height: 1;">✕</button>
+
+                <h4 style="margin: 0 0 15px 0; color: var(--primary);">Settings</h4>
+
+                <label style="display:block; margin-bottom: 8px; font-size: 0.9rem; font-weight: bold; color: #666;">Voice Speed</label>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;">
+                    <span style="font-size: 0.8rem; color: #ccc;">Slow</span>
+                    <span style="font-size: 0.8rem; color: #ccc;">Fast</span>
+                </div>
+                
+                <input type="range" min="0.5" max="1.5" step="0.1" value="0.8" 
+                    oninput="window.updateChatSpeed(this.value)" 
+                    style="width: 100%; display: block; box-sizing: border-box; accent-color: var(--primary); margin-bottom: 5px;">
+                
+                <div style="text-align: center; font-size: 0.9rem; color: var(--primary); font-weight: bold; margin-bottom: 15px;" id="tts-speed-val">0.8x</div>
+                
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+                
+                <h4 style="margin: 0 0 10px 0; font-size: 0.95rem;">Context Groups</h4>
+                <p style="font-size: 0.75rem; color: #999; margin-bottom: 10px;">AI will prioritize words from:</p>
+                
+                <div id="chat-group-list" style="max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 5px;">
+                    </div>
+            </div>
+
+            <div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background: #fdfbf7;">
+                <div class="chat-bubble ai">
+                    <div class="bubble-hanzi">你好！我是你的中文伙伴。</div>
+                    <div class="bubble-details hidden">
+                        <div class="bubble-pinyin">Nǐ hǎo! Wǒ shì nǐ de zhōngwén huǒbàn.</div>
+                        <div class="bubble-english">Hello! I am your Chinese partner.</div>
+                    </div>
+                    <div class="bubble-controls">
+                        <button class="btn-chat-action" onclick="window.speakChat('你好！我是你的中文伙伴。')">🔊</button>
+                        <button class="btn-chat-action" onclick="this.parentElement.previousElementSibling.classList.toggle('hidden')">👁️</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-zone" style="padding: 15px; background: white; border-top: 1px solid #eee; display: flex; gap: 10px; align-items: center;">
+                <button id="btn-mic" class="btn secondary" style="border-radius: 50%; width: 45px; height: 45px; padding: 0;" onclick="window.startListening()">🎤</button>
+                <input type="text" id="chat-text-input" placeholder="Type or speak..." style="flex: 1; border-radius: 25px; padding: 12px 15px; border: 1px solid #ddd;">
+                <button class="btn primary" style="border-radius: 50%; width: 45px; height: 45px; padding: 0;" onclick="window.handleUserSend()">➤</button>
+            </div>
+        </section>
+        <div id="group-selection-modal" class="hidden fade-in">
+            <div class="header-row" style="padding: 15px; background: white; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                <h2>📚 Select Content</h2>
+                <button class="btn sm-ghost" onclick="closeGroupSelection()">Done</button>
+            </div>
+            
+            <div style="padding: 10px 15px; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee;">
+                <span style="color: #666; font-size: 0.9rem;">Filter your study content:</span>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn sm-ghost" style="font-size: 0.8rem; padding: 4px 8px; background: white; border: 1px solid #ddd;" onclick="toggleAllGroups(true)">All On</button>
+                    <button class="btn sm-ghost" style="font-size: 0.8rem; padding: 4px 8px; background: white; border: 1px solid #ddd;" onclick="toggleAllGroups(false)">All Off</button>
+                </div>
+            </div>
+
+            <div id="group-toggle-list" style="flex: 1; overflow-y: auto;"></div>
+        </div>
+
+        <section id="character-hub" class="hidden">
+            <div class="char-sidebar">
+                <div style="padding: 15px; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                    <button class="btn sm-ghost" onclick="window.returnToMenu()">✕</button>
+                    <h2 style="margin:0; font-size:1.2rem;">Wardrobe</h2>
+                    
+                </div>
+
+                <div class="char-content-wrapper">
+                    <div class="char-nav" id="char-nav">
+                        </div>
+
+                    <div class="char-grid" id="char-grid">
+                        </div>
+                </div>
+            </div>
+
+            <div class="char-stage-wrapper">
+                <div class="char-stage">
+                    <div id="dragon-rig" class="dragon-rig">
+                        <img src="assets/body.png" class="rig-part rig-body">
+                        
+                        <img id="layer-legs" class="rig-part rig-acc hidden">
+                        <img id="layer-body" class="rig-part rig-acc hidden">
+                        <img id="layer-neck" class="rig-part rig-acc hidden">
+                        
+                        <img src="assets/hand_left.png" class="rig-part rig-hand hand-left">
+                        <img src="assets/hand_right.png" class="rig-part rig-hand hand-right">
+
+                        <div class="head-pivot">
+                            <img src="assets/head.png" class="rig-part rig-head">
+                            <img id="layer-eyes" class="rig-part rig-acc hidden">
+                            <img id="layer-head" class="rig-part rig-acc hidden">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 400px;">
+            <h3>⚙️ Settings</h3>
+
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; padding: 10px; background: var(--background); border-radius: 10px;">
+                <span style="font-weight:bold;">🌙 Dark Mode</span>
+                <label class="switch">
+                    <input type="checkbox" id="dark-mode-toggle" onchange="window.toggleDarkMode()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div style="text-align:left; margin-bottom: 25px;">
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">🎵 Music Volume</label>
+                <input type="range" min="0" max="1" step="0.1" value="0.3" 
+                    oninput="window.setBGMVolume(this.value)" 
+                    style="width:100%; accent-color: var(--primary);">
+            </div>
+
+            <div class="input-group" style="text-align: left; margin-bottom: 25px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                    <label style="font-weight: bold;">Gemini API Key</label>
+                    <button class="btn sm-ghost" onclick="openGeminiInstructions()" style="font-size:0.8rem; padding:2px 8px;">Get Key</button>
+                </div>
+                <div style="font-size: 0.75rem; color: #666; margin-bottom: 5px;">Used for: Importing Your Groups</div>
+                
+                <input type="password" id="input-api-key" placeholder="Starts with AIza..." 
+                    style="width: 100%; box-sizing: border-box; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn primary" style="flex: 1;" onclick="saveGeminiKey()">Save Gemini</button>
+                    <button id="btn-delete-gemini" class="btn ghost hidden" style="flex: 1; color: #e74c3c; border-color: #e74c3c;" onclick="removeGeminiKey()">Remove</button>
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+            <div class="input-group" style="text-align: left; margin-bottom: 20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                    <label style="font-weight: bold;">Groq API Key</label>
+                    <button class="btn sm-ghost" onclick="openGroqInstructions()" style="font-size:0.8rem; padding:2px 8px;">Get Key</button>
+                </div>
+                <div style="font-size: 0.75rem; color: #666; margin-bottom: 5px;">Used for: Conversation Pal & Translator</div>
+                
+                <input type="password" id="input-groq-key" placeholder="Starts with gsk_..." 
+                    style="width: 100%; box-sizing: border-box; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+                
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn primary" style="flex: 1;" onclick="saveGroqKey()">Save Groq</button>
+                    <button id="btn-delete-groq" class="btn ghost hidden" style="flex: 1; color: #e74c3c; border-color: #e74c3c;" onclick="removeGroqKey()">Remove</button>
+                </div>
+            </div>
+
+            <div class="action-buttons-vertical">
+                <button class="btn ghost full-width" onclick="closeModal('settings-modal')">Close Window</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="gemini-instructions-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 400px; text-align: left;">
+            <h3 style="text-align:center; color: var(--primary);">🎯 Unlock importing your own content!</h3>
+            <h4 style="color: var(--primary); margin-top: 0; font-size: 1rem; text-align: center; margin-bottom: 5px;">
+                Using a Gemini API key!
+                <span style="font-size:0.9rem; font-weight:normal; text-decoration:underline; cursor:pointer; color:var(--primary);" onclick="document.getElementById('api-explainer-modal').classList.remove('hidden')">
+                    What's an API Key?
+                </span>
+            </h4>
+            
+            <div class="setup-guide" style="background: #f0f7ff; padding: 18px; border-radius: 16px; font-size: 0.9rem; border: 1px solid #d1e3ff;">
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div style="display: flex; gap: 10px;">
+                        <span style="background: var(--primary); color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: bold;">1</span>
+                        <span>Click link below, then <b>check the box</b> to agree to terms.</span>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <span style="background: var(--primary); color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: bold;">2</span>
+                        <span>Find <b>"Default Gemini Project"</b>. Click on the 4 letters to its left.</span>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <span style="background: var(--primary); color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: bold;">3</span>
+                        <span>Copy the key, and come back!</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin: 25px 0;">
+                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="btn primary" style="text-decoration: none; justify-content: center;">
+                    Get Gemini Key
+                </a>
+            </div>
+
+            <button class="btn ghost full-width" onclick="document.getElementById('gemini-instructions-modal').classList.add('hidden')">Close</button>
+        </div>
+    </div>
+    <div id="daily-settings-modal" class="modal-overlay hidden" style="display: flex; align-items: center; justify-content: center; z-index: 200;">
+        <div class="settings-popup">
+            <h2 style="color: var(--text);">Daily Session</h2>
+            <p style="color: #999; margin-bottom: 20px;">Customize your practice</p>
+
+            <label style="display:block; text-align:left; font-size:0.9rem; color:#666; margin-left:5px;">Content Type</label>
+            <div class="mode-toggle-group">
+                <button id="opt-words" class="mode-toggle active" onclick="setDailyType('words')">Words</button>
+                <button id="opt-mix" class="mode-toggle" onclick="setDailyType('mix')">Mix</button>
+                <button id="opt-sentences" class="mode-toggle" onclick="setDailyType('sentences')">Sentences</button>
+            </div>
+
+            <label style="display:block; text-align:left; font-size:0.9rem; color:#666; margin-left:5px; margin-top: 15px;">
+                Total Cards: <span id="limit-display" style="color:var(--primary); font-weight:bold;">15</span>
+            </label>
+            <input type="range" id="daily-limit-slider" min="5" max="50" value="15" step="5" 
+                style="width:100%; margin: 10px 0 0 0; accent-color: var(--primary);"
+                oninput="document.getElementById('limit-display').textContent = this.value">
+
+            <label style="display:block; text-align:left; font-size:0.9rem; color:#666; margin-left:5px; margin-top: 15px;">
+                New Words Limit: <span id="new-limit-display" style="color:#e67e22; font-weight:bold;">5</span>
+            </label>
+            <input type="range" id="daily-new-slider" min="5" max="20" value="5" step="1" 
+                style="width:100%; margin: 10px 0 25px 0; accent-color: #e67e22;"
+                oninput="document.getElementById('new-limit-display').textContent = this.value">
+
+            <button class="btn primary full-width" onclick="confirmDailyStart()">Start Practice</button>
+            <button class="btn ghost full-width" style="margin-top:10px;" onclick="closeModal('daily-settings-modal')">Cancel</button>
+        </div>
+    </div>
+    <div id="magic-status-tracker" class="hidden" style="position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 10px 15px; border-radius: 25px; display: flex; align-items: center; gap: 10px; font-size: 0.8rem; z-index: 9999; border: 1px solid #444;">
+        <div class="spinner" style="width: 15px; height: 15px; border-width: 2px; margin: 0;"></div>
+        <span>AI is working...</span>
+    </div>
+    <div id="groq-instructions-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="text-align: left;">
+            <h3 style="color: var(--primary); margin-top: 0; font-size: 1.2rem; text-align: center; margin-bottom: 5px;">
+                Unlock Your Talking Pal & Translator🚀
+            </h3>
+            <h4 style="color: var(--primary); margin-top: 0; font-size: 1rem; text-align: center; margin-bottom: 20px;">
+                Using a Groq API key!
+                <span style="font-size:0.9rem; font-weight:normal; text-decoration:underline; cursor:pointer; color:var(--primary);" onclick="document.getElementById('api-explainer-modal').classList.remove('hidden')">
+                    What's an API Key?
+                </span>
+            </h4>
+            
+            <ol style="line-height: 1.6; padding-left: 20px; color: #444; font-size: 0.95rem;">
+                <li style="margin-bottom: 8px;">Click the button below.</li>
+                <li style="margin-bottom: 8px;">Sign in with Google.</li>
+                <li style="margin-bottom: 8px;">Click <strong>"Create API Key"</strong> & Submit.</li>
+                <li>Copy the key (starts with <code>gsk_</code>) and come back!</li>
+            </ol>
+            
+            <div style="margin: 25px 0;">
+                <a href="https://console.groq.com/keys" target="_blank" class="btn primary" style="text-decoration: none; justify-content: center;">
+                    Get Groq Key
+                </a>
+            </div>
+
+            <button class="btn ghost full-width" onclick="document.getElementById('groq-instructions-modal').classList.add('hidden')">Close</button>
+        </div>
+    </div>
+
+
+    <div id="api-explainer-modal" class="modal-overlay hidden" style="z-index: 100000;">
+        <div class="modal-content" style="max-width: 350px; text-align: left;">
+            <div class="header-row" style="margin-bottom: 15px;">
+                <h3 style="margin:0; color:var(--primary);">🔑 What is an API Key?</h3>
+                <button class="btn sm-ghost" onclick="document.getElementById('api-explainer-modal').classList.add('hidden')">✕</button>
+            </div>
+            
+            <p style="color:#444; font-size:0.95rem; line-height:1.5; margin-bottom:15px; text-align: justify;">
+                An <strong>API Key</strong> is like a unique digital password. It allows this app to "talk" to powerful AI services (like Google Gemini or Groq) on your behalf.
+            </p>
+            
+            <div style="background:#f0f7ff; padding:12px; border-radius:10px; border:1px solid #d1e3ff; font-size:0.9rem; margin-bottom:20px;">
+                <strong>Why do I need it?</strong><br>
+                It unlocks smart features like the translator, Conversation Pal, and importing your own items without requiring a monthly subscription to this app.
+            </div>
+
+            <button class="btn primary full-width" onclick="document.getElementById('api-explainer-modal').classList.add('hidden')">Got it</button>
+        </div>
+    </div>
+
+
+    <div id="story-gen-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>✨ Create a Story</h3>
+            
+            <label style="display:block; text-align:left; margin-bottom:5px;">What topic?</label>
+            <input type="text" id="gen-topic" placeholder="e.g. Football, Cooking, Space..." class="full-width" style="margin-bottom:15px;">
+
+            <label style="display:block; text-align:left; margin-bottom:5px;">Your Level?</label>
+            <select id="gen-level" class="full-width" style="padding:12px; border-radius:12px; border:2px solid #eee; background:white; font-size:1rem; margin-bottom:20px;">
+                <option value="HSK1">🐣 Beginner (HSK 1 - 100 words)</option>
+                <option value="HSK2">🚶 Getting By (HSK 2 - 200 words)</option>
+                <option value="HSK3" selected>🎓 Intermediate (HSK 3 - 300 words)</option>
+                <option value="HSK4">🚀 Advanced (HSK 4 - 400 words)</option>
+                <option value="HSK5">🦁 Pro (HSK 5 - 550+ words)</option>
+            </select>
+
+            <div class="action-buttons-row">
+                <button class="btn primary" onclick="window.generateCustomStory()">Generate</button>
+                <button class="btn ghost" onclick="document.getElementById('story-gen-modal').classList.add('hidden')">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module" src="js/app.js"></script>
+    
+</body>
+</html>

@@ -1,0 +1,197 @@
+/* --- CHARACTER HUB LAYOUT --- */
+#character-hub {
+    display: flex;
+    flex-direction: row; 
+    height: 100vh;
+    overflow: hidden;
+    background: #f0f4f8;
+}
+
+/* LEFT SIDE: Container for Nav + Grid */
+.char-sidebar {
+    width: 50%; 
+    max-width: 500px;
+    background: white;
+    display: flex;
+    flex-direction: column; /* Stack Header & Body vertically */
+    border-right: 2px solid #e2e8f0;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+    z-index: 50;
+    height: 100%;
+}
+
+/* Horizontal Split (Nav Left, Grid Right) */
+.char-content-wrapper {
+    display: flex;
+    flex-direction: row;
+    flex: 1;            /* Take remaining height below header */
+    overflow: hidden;   /* Prevent outer scrolling */
+    height: 100%;
+}
+
+/* RIGHT SIDE: The Stage */
+.char-stage-wrapper {
+    flex: 1; 
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at center, #ffffff 0%, #e6eef5 100%);
+    overflow: hidden; /* Keeps dragon inside */
+}
+
+/* The Container for the Rig */
+.char-stage {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+/* --- NAVIGATION TABS (Vertical Column) --- */
+.char-nav {
+    display: flex;
+    flex-direction: column;
+    width: 70px;            /* Fixed width */
+    overflow-y: auto;
+    padding: 10px 5px;
+    background: #f8f9fa;
+    border-right: 1px solid #eee;
+    gap: 15px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Style the Buttons to be Icons */
+.char-nav-btn {
+    background: white; 
+    border: 1px solid #e2e8f0; 
+    width: 45px; 
+    height: 45px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1.5rem; /* Large Icon */
+    color: #64748b;
+    padding: 0; /* Remove padding to center icon */
+}
+
+/* Active State */
+.char-nav-btn.active {
+    background: var(--primary); 
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 4px 10px rgba(66, 153, 225, 0.3);
+    transform: scale(1.05);
+}
+
+/* --- ACCESSORY GRID (Takes remaining space) --- */
+.char-grid {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+    align-content: start;
+}
+
+.acc-card {
+    aspect-ratio: 1/1;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    display: flex; justify-content: center; align-items: center;
+    cursor: pointer; position: relative;
+}
+.acc-card img { width: 80%; height: 80%; object-fit: contain; }
+.acc-card.active { border-color: var(--primary); background: #ebf8ff; }
+.acc-card.locked { background: #e2e8f0; cursor: not-allowed; filter: grayscale(100%); opacity: 0.7; }
+.acc-card.locked::after { content: '🔒'; position: absolute; font-size: 1.5rem; z-index: 10; }
+
+
+/* --- DRAGON RIGGING (The Fix) --- */
+.dragon-rig {
+    position: relative;
+    width: 300px;  /* Fixed reliable size */
+    height: 380px; 
+    /* Center the rig itself */
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; 
+}
+
+/* Standardize all parts to fit the container */
+.rig-part {
+    position: absolute;
+    width: 100%;  /* Fill the container */
+    height: 100%;
+    object-fit: contain;
+    top: 0; left: 0;
+    pointer-events: none;
+}
+
+/* 1. BODY */
+.rig-body {
+    width: 50%;  /* Fill the container */
+    height: 50%;
+    top: 40%;
+    left: 24%;
+    z-index: 10;
+    transform-origin: bottom center;
+    /*animation: breatheBody 4s ease-in-out infinite;*/
+}
+
+/* 2. HEAD */
+.head-pivot {
+    position: absolute;
+    top: -21.4%; left: -3%;
+    width: 100%; height: 100%;
+    z-index: 20;
+    animation: headBob 4s ease-in-out infinite;
+    animation-delay: 0.5s;
+}
+
+/* 3. HANDS */
+.rig-hand {
+    position: absolute;
+    width: 35%; height: 35%;
+    z-index: 5;
+    animation: breatheHands 4s ease-in-out infinite;
+}
+
+/* Adjust transforms instead of top/left to keep them aligned */
+.hand-left {
+    top: 44.5%; left: 7%;
+    transform-origin: 65% 45%; /* Pivot around shoulder area */
+    animation-name: breatheLeft;
+}
+
+.hand-right {
+    top: 45%; left: 57%;
+    transform-origin: 35% 45%;
+    animation-name: breatheRight;
+}
+
+/* --- ANIMATIONS --- */
+@keyframes breatheBody {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(1.02) scaleX(0.99); }
+}
+@keyframes headBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(2px); }
+}
+@keyframes breatheLeft {
+    0%, 100% { transform: rotate(0deg) translateX(0); }
+    50% { transform: rotate(5deg) translateX(-2px); }
+}
+@keyframes breatheRight {
+    0%, 100% { transform: rotate(0deg) translateX(0); }
+    50% { transform: rotate(-5deg) translateX(2px); }
+}

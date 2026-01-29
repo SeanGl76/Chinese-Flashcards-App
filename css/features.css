@@ -1,0 +1,177 @@
+/* --- features.css: Menus, Word Bank & Shared UI --- */
+
+/* --- MENU ZONES (Main Menu) --- */
+.menu-zone {
+    flex-direction: column; /* Stack Icon on top of Text */
+    align-items: center;
+    text-align: center;
+    height: 160px; 
+    justify-content: center;
+    border-radius: 25px;
+
+    background: var(--container-bg);
+    border: 2px solid var(--border);
+    box-shadow: 0 8px 0 var(--shadow-color);
+    transition: transform 0.1s, box-shadow 0.1s;
+    cursor: pointer;
+    
+}
+
+.menu-zone:active {
+    transform: translateY(8px); 
+    box-shadow: 0 0 0 #e0e0e0;
+    box-shadow: 0 0 0 transparent;
+}
+.zone-icon { 
+    font-size: 2rem; width: 50px; height: 50px; 
+    background: var(--background);
+    border-radius: 12px; display: flex; align-items: center; justify-content: center; 
+}
+.zone-info { flex: 1; }
+.zone-info h3 { margin: 0; font-size: 1.1rem; color: var(--text); }
+.zone-info p { margin: 2px 0 0 0; font-size: 0.85rem; color: var(--light-text); }
+
+/* --- THEMED ZONES (Red, Jade, Gold) --- */
+
+/* 1. Review (Lantern Red) */
+.review-zone {
+    grid-column: 1 / -1; /* Spans both columns */
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 8px 0 var(--shadow-color) !important;
+    transform: translateY(0);
+    transition: transform 0.1s;
+}
+.review-zone h3, .review-zone p { color: #3d3d3d !important; }
+.review-zone .zone-icon { background: transparent !important; color: #3d3d3d !important; }
+
+/* 2. Practice (Jade Green) */
+.practice-zone {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+    color: #3d3d3d !important;
+    border: none !important;
+    box-shadow: 0 8px 0 var(--shadow-color) !important;
+}
+.practice-zone h3, .practice-zone p { color: #3d3d3d !important; }
+.practice-zone .zone-icon { background: transparent !important; color: #3d3d3d !important; }
+
+/* 3. Arcade (Gold/Accent) */
+.arcade-zone {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important;
+    color: #3d3d3d !important;
+    border: none !important;
+    box-shadow: 0 8px 0 var(--shadow-color) !important;
+}
+
+.arcade-zone h3, .arcade-zone p { color: #3d3d3d !important; }
+.arcade-zone .zone-icon { background: transparent !important; color: #3d3d3d !important; }
+
+
+.practice-zone:active, .arcade-zone:active {
+    box-shadow: 0 0 0 transparent !important;
+    transform: translateY(8px) !important;
+}
+
+/* --- ARCADE HUB MENU --- */
+.arcade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.arcade-btn {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%) !important; border: 2px solid var(--accent-dark); border-radius: 12px;
+    padding: 15px 10px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; cursor: pointer;
+    transition: 0.1s; height: 100px; color: var(--text);
+}
+.arcade-btn:active { transform: scale(0.98); background: #caac70; border-color: var(--primary); }
+.arcade-btn .icon { font-size: 2rem; margin-bottom: 5px; }
+.arcade-btn .label { font-weight: bold; font-size: 0.9rem; line-height: 1.2; text-align: center; }
+
+/* --- WORD BANK & SHARED FOLDERS --- */
+.folder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.folder-card {
+    background: var(--card-bg); border: 2px solid var(--border); border-radius: 12px;
+    padding: 15px; text-align: center; cursor: pointer; position: relative;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--text);
+}
+.folder-icon { font-size: 2rem; display: block; margin-bottom: 5px; }
+.folder-name { font-weight: bold; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.folder-count { font-size: 0.8rem; color: #999; }
+.folder-delete {
+    position: absolute; top: 5px; right: 5px;
+    background: transparent; border: none; color: var(--light-text); cursor: pointer;
+    font-size: 1.2rem; width: 30px; height: 30px; border-radius: 50%;
+    transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;
+}
+.folder-delete:hover { color: var(--danger); background-color: rgba(231, 76, 60, 0.1); transform: scale(1.1); }
+
+/* Stats & Tables */
+.stats-box {
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 15px;
+    padding: 15px; margin-bottom: 15px; display: flex; flex-direction: column; align-items: center;
+}
+.stats-toggle { display: flex; background: #f0f0f0; border-radius: 20px; padding: 3px; margin-bottom: 10px; }
+.toggle-btn {
+    border: none; background: var(--background); padding: 5px 15px; border-radius: 15px;
+    font-size: 0.85rem; cursor: pointer; color: var(--light-text);
+}
+.toggle-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-weight: bold; }
+.chart-wrapper { position: relative; height: 180px; width: 100%; display: flex; justify-content: center; }
+
+.table-container { overflow-y: auto; flex: 1; margin-top: 10px; }
+.word-table { width: 100%; border-collapse: collapse; }
+.word-table th { background: var(--background); color: var(--light-text); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px; }
+.word-table td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--text); }
+
+/* Status Badges */
+.status-badge {
+    padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;
+    display: inline-block; min-width: 40px; text-align: center;
+}
+.status-badge.new { background: var(--border); color: var(--light-text); }
+.status-badge.due { background: #fed7d7; color: var(--danger); }
+.status-badge.weak { background: #feebc8; color: #c05621; }
+.status-badge.strong { background: #c6f6d5; color: var(--success); }
+
+/* Action Buttons */
+.action-cell { display: flex; gap: 8px; align-items: center; }
+.icon-btn {
+    background: transparent; border: none; font-size: 1.1rem; cursor: pointer;
+    padding: 5px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+}
+.icon-btn:hover { background: var(--background); }
+.write-btn { color: var(--primary); }
+.delete-btn { color: var(--light-text); }
+.delete-btn:hover { color: var(--danger); background: rgba(229, 62, 62, 0.1); }
+
+
+/* --- LAYOUT FIXES (Hubs & Listening) --- */
+
+/* 1. Center the Hub Content */
+#practice-hub, #arcade-hub {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center Verti    cally */
+    align-items: center;     /* Center Horizontally */
+    text-align: center;      /* Ensure text is centered */
+    padding-bottom: 80px;    /* Space for bottom styling */
+}
+
+/* 2. Fix the Header in Centered Hubs */
+#practice-hub .header-row, #arcade-hub .header-row {
+    margin-bottom: 30px;
+    width: 100%;
+    justify-content: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: transparent;
+    border: none;
+    z-index: 10;
+}
+
+/* 3. Listening Match Fix */
+/* Forces the game container down and centers it */
+#listening-game-container {
+    padding-top: 80px !important; /* Push down below header/top area */
+    justify-content: center !important;
+}

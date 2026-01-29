@@ -1,0 +1,67 @@
+/* --- CHAT PAL --- */
+#chat-container { height: 100%; width: 100%; display: flex; flex-direction: column; background: var(--container-bg); overflow: hidden; }
+#chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; -webkit-overflow-scrolling: touch; }
+.chat-bubble { 
+    max-width: 80%; 
+    padding: 15px; 
+    border-radius: 18px; 
+    font-size: 1rem; 
+    line-height: 1.4; 
+    position: relative; 
+    animation: slideUp 0.2s ease-out;
+    display: flex;          /* NEW: Flex container */
+    flex-direction: column; /* NEW: Vertical stack */
+}
+.chat-bubble.user { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 4px; }
+
+.chat-bubble.ai { align-self: flex-start; background: white; border: 1px solid #eee; color: #333; border-bottom-left-radius: 4px; }
+/* Force Hanzi to be visible and prominent */
+.chat-bubble.ai .bubble-hanzi {
+    display: block !important;
+    width: 100%;
+    color: #2c3e50 !important; /* Force Dark Color */
+    font-size: 1.3rem !important; /* Make it large enough */
+    font-weight: bold;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Ensure interactive spans inside Hanzi are also visible */
+.chat-bubble.ai .bubble-hanzi .chat-word {
+    color: inherit;
+    display: inline-block;
+}
+
+.chat-bubble.ai .bubble-details {
+    display: block;      /* Visible by default (when .hidden is removed) */
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px dashed #eee;
+}
+
+.chat-bubble.ai .bubble-pinyin { 
+    color: var(--primary); 
+    font-size: 0.95rem; 
+    margin-bottom: 4px;
+    word-wrap: break-word; /* Prevents long pinyin lines from cutting off */
+}
+
+.chat-bubble.ai .bubble-english { color: #666; font-size: 0.85rem; font-style: italic; }
+
+.chat-bubble.ai .bubble-details.hidden {
+    display: none !important;
+}
+
+.chat-input-zone { flex-shrink: 0; padding: 15px; background: white; border-top: 1px solid #eee; display: flex; gap: 10px; align-items: center; z-index: 10; }
+
+#suggestion-strip { height: 0; overflow: hidden; background: #f8f9fa; border-top: 1px solid #eee; display: flex; align-items: center; gap: 8px; padding: 0 15px; transition: height 0.2s ease, padding 0.2s ease; flex-shrink: 0; }
+#suggestion-strip.active { height: 50px; padding: 10px 15px; }
+.suggestion-chip { background: white; border: 1px solid #ddd; border-radius: 20px; padding: 5px 12px; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+
+
+.btn-chat-action { background: transparent; border: none; font-size: 1.1rem; cursor: pointer; padding: 0 5px; opacity: 0.6; }
+.btn-chat-action:hover { opacity: 1; }
+#btn-mic.listening { animation: pulse 1s infinite; background-color: #e74c3c !important; border-color: #e74c3c; color: white; }
+.chat-word.interactive { cursor: pointer; border-bottom: 1px dotted #ccc; }

@@ -1,0 +1,255 @@
+/* --- STORIES & READER --- */
+
+/* 1. Base Style for ALL words (Interactive or Not) */
+/* This reserves the spacing so text doesn't jump when highlighted */
+.story-word {
+    display: inline;
+    position: relative;
+    margin: 0 1px;        /* Consistent gap */
+    padding: 2px 1px;     /* Reserves space for the highlight box */
+    border-radius: 4px;   
+    transition: color 0.2s;
+}
+
+/* 2. Interactive Words (Clickable) */
+.story-word.interactive { 
+    cursor: pointer; 
+    border-bottom: 2px solid #a5d6a7; 
+    font-size: 1.6rem; 
+    /* We keep the side padding 1px to match the base, 
+       but you can increase vertical padding here if you want taller click targets */
+    padding: 2px 1px; 
+}
+
+.story-word.interactive:hover { 
+    color: var(--primary); 
+    background: rgba(102, 126, 234, 0.1); 
+}
+
+/* 3. Active Highlight (The Yellow Box) */
+.story-word.highlight {
+    background-color: #fffce0 !important; 
+    color: #333 !important;
+    box-shadow: 4px 0 0 #fffce0, -4px 0 0 #fffce0;
+    
+    /* IMPORTANT: Matches the base padding exactly */
+    padding: 2px 0 !important; 
+    
+    border-radius: 2px;
+    z-index: 1;
+}
+
+/* Corner rounding for cleaner multi-word flows */
+.story-word.highlight:first-of-type { border-top-left-radius: 6px; border-bottom-left-radius: 6px; padding-left: 4px !important; }
+.story-word.highlight:last-of-type { border-top-right-radius: 6px; border-bottom-right-radius: 6px; padding-right: 4px !important; }
+
+
+/* --- LAYOUT & TEXT --- */
+#story-text-hanzi { display: block; line-height: 2.5; text-align: justify; }
+.reader-content { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+
+/* --- PLAYER CONTROLS --- */
+:root {
+    --btn-size: 30px;
+    --btn-font-size: 1.2rem;
+}
+
+#btn-play-story, 
+#btn-stop-story {
+    width: var(--btn-size) !important;
+    height: var(--btn-size) !important;
+    font-size: var(--btn-font-size) !important;
+    padding: 0 !important;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    margin: 0 !important;
+    flex-shrink: 0;
+}
+
+
+#btn-play-story:active, 
+#btn-stop-story:active {
+    transform: scale(0.9);
+    background: #e2e8f0;
+}
+
+/* --- CUSTOM RANGE SLIDER --- */
+#tts-speed {
+    -webkit-appearance: none; appearance: none;
+    width: 100px !important; height: 10px !important;
+    background: #e0e0e0; border-radius: 5px;
+    outline: none; padding: 0 !important; border: none !important;
+    margin: 0 10px; vertical-align: middle; cursor: pointer;
+    background-image: linear-gradient(var(--primary), var(--primary));
+    background-repeat: no-repeat; background-size: 10% 100%; 
+}
+
+#tts-speed::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--primary); border: 3px solid white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+#tts-speed::-moz-range-thumb {
+    width: 20px; height: 20px; border: 3px solid white;
+    border-radius: 50%; background: var(--primary);
+}
+
+
+#story-reader {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+    background: var(--container-bg); /* Use Theme Variable */
+    color: var(--text);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#story-title { margin: 0 0 5px 0; color: var(--text); }
+#story-title-en { margin: 0; color: var(--light-text); font-weight: normal; font-size: 1.1rem; }
+
+
+.reader-header {
+    padding: 10px 15px !important;
+    background: var(--container-bg); /* Use Theme Variable */
+    border-bottom: 1px solid var(--border);
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    flex-shrink: 0; /* Don't let header shrink */
+    z-index: 20;    /* Stay above sticky content */
+    position: relative;
+}
+
+/* Target ALL buttons inside the Reader Header */
+.reader-header .btn {
+    padding: 8px 12px !important; /* 1. Resize Padding (Top/Bot Left/Right) */
+    font-size: 0.85rem !important; /* 2. Resize Text */
+    height: 36px !important;      /* 3. Force Height */
+    line-height: 1 !important;
+    border-radius: 12px !important; /* Optional: Make them rounder */
+    margin: 0 2px !important;      /* Spacing between buttons */
+}
+
+/* Optional: Specific Style for Pinyin/English buttons to make them stand out */
+#btn-toggle-pinyin, 
+#btn-toggle-trans {
+    background: white !important;
+    border: 1px solid #e0e0e0 !important;
+    color: #555 !important;
+    font-weight: bold;
+}
+
+/* Optional: Style for the "Back" button specifically */
+.reader-header button[onclick="closeStoryReader()"] {
+    margin-right: auto !important; /* Pushes it to the far left */
+    font-size: 1rem !important;    /* Make the arrow bigger */
+}
+
+
+.story-word.interactive:active {
+    background-color: #e2e8f0;
+    transform: scale(0.95);
+    transition: transform 0.1s;
+}
+
+/* --- PINYIN ABOVE CHARACTERS --- */
+/* When the parent has .show-pinyin class, reveal the data-pinyin attribute */
+.show-pinyin .story-word[data-pinyin]::after {
+    content: attr(data-pinyin);
+    position: absolute;
+    top: -1.8em; /* Moves it above the character */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.5em; /* Smaller font for Pinyin */
+    color: var(--primary);
+    white-space: nowrap;
+    pointer-events: none; /* Let clicks pass through to the character */
+    font-weight: bold;
+    opacity: 0.9;
+}
+
+/* Ensure lines have enough space for the floating pinyin */
+.show-pinyin #story-text-hanzi {
+    line-height: 3.0 !important; /* Increase line height so pinyin fits */
+}
+
+/* --- LIVE TRANSLATION (Under Title) --- */
+#story-live-translation {
+    /* No sticky needed because it's now outside the scroll container */
+    width: 100%;
+    box-sizing: border-box;
+    
+    text-align: center;
+    font-size: 1rem;
+    font-style: italic;
+    
+    /* Layout: Flush against header, push content down */
+    margin: 0; 
+    padding: 15px 20px;
+    
+    /* Visuals */
+    background: var(--card-bg);
+    border-bottom: 2px solid var(--accent);
+    color: var(--text);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    z-index: 50;
+}
+
+/* Ensure Titles have space from the top (or the translation box) */
+.story-titles-group {
+    margin-top: 20px; /* Space between header/translation and title */
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+
+
+/* --- ACCENT BUTTONS & GLOW --- */
+/* Target the toggle buttons specifically */
+#btn-toggle-pinyin, 
+#btn-toggle-trans {
+    background: var(--accent) !important;       /* Gold */
+    border: 2px solid var(--accent-dark) !important;
+    color: #3d3d3d !important;
+    font-weight: bold;
+    box-shadow: 0 4px 0 var(--accent-dark) !important;
+    transition: all 0.1s ease;
+    transform: translateY(0);
+    font-size: 0.6rem;
+}
+
+/* "Pressed/Stuck" Active State */
+#btn-toggle-pinyin.active, 
+#btn-toggle-trans.active {
+    transform: translateY(4px); /* Moves down to look pressed */
+    box-shadow: 0 0 0 transparent !important; /* Removes the 3D shadow */
+    border-color: #fff !important; /* Optional: Highlights border */
+    
+    /* The Glow Effect */
+    box-shadow: 0 0 15px var(--accent), inset 0 0 10px rgba(255,255,255,0.5) !important;
+}
+
+
+.sticky-header-group {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--container-bg); /* Must be opaque to hide text behind it */
+    padding-bottom: 15px;
+    padding-top: 5px;
+    border-bottom: 1px solid transparent; /* Optional transition */
+    transition: border-color 0.3s;
+}
+
+
+body.dark-mode .story-word.highlight {
+    background-color: #c4a053 !important; /* Darker yellow/brown */
+    color: #fff !important;
+    box-shadow: 4px 0 0 #c4a053, -4px 0 0 #c4a053;
+}
